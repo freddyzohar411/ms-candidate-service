@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:8090/api/candidate - create",
+			"name": "http://localhost:8090/api/candidates - create",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -24,7 +24,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"accountInformation\": {\r\n        \"accountId\": 1234679\r\n    },\r\n    \"jobOpeningInformation\": {\r\n        \"jobTitle\": \"JavaDeveloper\",\r\n        \"dateOpen\": \"2023-08-30-11:20:20\",\r\n        \"targetClosingDate\": \"2023-09-10-11:20:20\",\r\n        \"clientJobID\": \"N150718\",\r\n        \"jobType\": \"Fulltime\",\r\n        \"duration\": \"7\",\r\n        \"primarySkills\": \"Javaspringboot\",\r\n        \"secondarySkills\": \"HtmlCSS\",\r\n        \"noOfHeadcounts\": \"10\",\r\n        \"workType\": \"Fulltime\",\r\n        \"jobDescription\": \"JavaBackEndDeveloper\",\r\n        \"visaStatus\": \"Approved\",\r\n        \"country\": \"India\",\r\n        \"languages\": \"TeluguEnglish\",\r\n        \"requiredDocuments\": \"String\",\r\n        \"workLocation\": \"India\",\r\n        \"priority\": \"123\",\r\n        \"qualification\": \"B.Tech\",\r\n        \"turnaroundTimeUnit\":\"12\",\r\n        \"turnaroundTimeDay\":\"23\",\r\n        \"turnaroundTime\": \"2023-08-30-11-20-20.2325\",\r\n        \"jobRatingSales\": \"100jr\",\r\n        \"securityClearance\": \"23\"\r\n    },\r\n    \"jobCommercials\": {\r\n        \"salaryBudgetLocal\": \"123\",\r\n        \"localCurrency\": \"Rupees\",\r\n        \"budgetType\": \"1Year\",\r\n        \"salaryBudgetSGD\": \"66\",\r\n        \"expectedMargin\": \"1000$\",\r\n        \"expectedMarginSGD\": \"12000\",\r\n        \"screening\": {\r\n            \"technicalScreening\": \"yes\",\r\n            \"selectTechnicalScreeningTemplate\": \"23\",\r\n            \"selectRecruitmentScreeningTemplate\": \"43\"\r\n        }\r\n    },\r\n    \"jobRemarks\": \"Enverythingisgood\"\r\n}",
+					"raw": "{\r\n    \"basicInfo\": {\r\n        \"firstName\": \"Kotaiah\",\r\n        \"lastName\": \"Nalleboina\",\r\n        \"gender\": \"male\",\r\n        \"email\": \"kotaiahnalleboina@gmail.com\",\r\n        \"phone\": \"9381515362\",\r\n        \"candidateNationality\": \"india\",\r\n        \"currentLocation\": \"guntur\",\r\n        \"visaStatus\": \"accepted\",\r\n        \"languageKnown\": \"Telugu,English\",\r\n        \"candidateOwner\": \"avensys\"\r\n    },\r\n    \"professionalInfo\": {\r\n        \"totalExperience\": \"2.1\",\r\n        \"relevantExperience\": \"1.8\",\r\n        \"currentEmployer\": \"avensys\",\r\n        \"currentPositionTitle\": \"softwareEngineer\",\r\n        \"candidateCurrentSalary\": \"600000\",\r\n        \"candidateExpectedSalary\": \"780000\",\r\n        \"reasonForChange\": \"better Career Greoth\",\r\n        \"noticePeriod\": \"3.0\",\r\n        \"profileSummary\": \"softeareEngineer\",\r\n        \"primarySkills\": \"Java,Spring\",\r\n        \"secondarySkills\": \"HTML,CSS\",\r\n        \"additionalInfo\": \"SoftwareEngineer\",\r\n        \"candidateStatus\": \"Selected\",\r\n        \"source\": \"LinkedIn\",\r\n        \"referrersName\": \"SeemaVarma\",\r\n        \"emailOptOut\": true\r\n    }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -32,7 +32,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8090/api/candidate",
+					"raw": "http://localhost:8090/api/candidates",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -40,14 +40,14 @@
 					"port": "8090",
 					"path": [
 						"api",
-						"candidate"
+						"candidates"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "http://localhost:8090/api/candidate/get/1 - GET",
+			"name": "http://localhost:8090/api/candidates/1 - GET",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -75,7 +75,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8090/api/candidate/get/1",
+					"raw": "http://localhost:8090/api/candidates/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -83,8 +83,7 @@
 					"port": "8090",
 					"path": [
 						"api",
-						"candidate",
-						"get",
+						"candidates",
 						"1"
 					]
 				}
@@ -92,7 +91,50 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8090/api/candidate/1 - PUT",
+			"name": "http://localhost:8090/api/candidates - GET all",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8090/api/candidates",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"candidates"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8090/api/candidates/1 - PUT",
 			"request": {
 				"method": "PUT",
 				"header": [],
@@ -106,7 +148,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8090/api/candidate/1",
+					"raw": "http://localhost:8090/api/candidates/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -114,7 +156,7 @@
 					"port": "8090",
 					"path": [
 						"api",
-						"candidate",
+						"candidates",
 						"1"
 					]
 				}
@@ -136,7 +178,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8090/api/candidate/1",
+					"raw": "http://localhost:8090/api/candidates1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -144,8 +186,7 @@
 					"port": "8090",
 					"path": [
 						"api",
-						"candidate",
-						"1"
+						"candidates1"
 					]
 				}
 			},

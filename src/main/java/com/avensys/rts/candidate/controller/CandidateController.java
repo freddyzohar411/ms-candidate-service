@@ -1,5 +1,6 @@
 package com.avensys.rts.candidate.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ import com.avensys.rts.candidate.util.ResponseUtil;
  * 
  */
 @RestController
-@RequestMapping("/api/candidate")
+@RequestMapping("/api/candidates")
 public class CandidateController {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CandidateController.class);
@@ -93,7 +94,7 @@ public class CandidateController {
 	 * @param id
 	 * @return
 	 */
-	@GetMapping("/get/{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<?> getCandidateData(@RequestHeader Map<String, String> headers, @PathVariable Integer id) {
 		LOG.info("getCandidateData request received");
 		CandidateEntity candidateEntity = candidateService.getCandidateData(id);
@@ -101,7 +102,13 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 	
-	
+	@GetMapping
+	public ResponseEntity<?> getAllCandidateData(@RequestHeader Map<String, String> headers) {
+		LOG.info("getCandidateData request received");
+		List<CandidateEntity> candidateEntityList = candidateService.getAllCandidateData();
+		return ResponseUtil.generateSuccessResponse(candidateEntityList, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
 	
 
 }

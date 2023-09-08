@@ -1,5 +1,7 @@
 package com.avensys.rts.candidate.service;
 
+import java.util.List;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,6 +113,13 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 		
 		return candidateEntity;
+	}
+	@Override
+	public List<CandidateEntity> getAllCandidateData() {
+		LOG.info("getAllCandidateData request processing");
+		List<CandidateEntity> candidateEntityList = candidateRepository.findAllAndIsDeleted(false);
+		LOG.info("candidateEntityList retrieved : Service");
+		return candidateEntityList;
 	}
 	
 }

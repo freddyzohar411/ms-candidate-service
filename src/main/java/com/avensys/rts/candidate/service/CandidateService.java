@@ -1,5 +1,7 @@
 package com.avensys.rts.candidate.service;
 
+import java.util.List;
+
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.payloadrequest.CandidateRequest;
 
@@ -32,6 +34,12 @@ public interface CandidateService {
 	 * @param id
 	 */
 	public void deleteCandidateData(Integer id);
+
+	/**
+	 * 
+	 * @return
+	 */
+	public List<CandidateEntity> getAllCandidateData();
 
 	
 }
