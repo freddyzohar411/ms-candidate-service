@@ -1,9 +1,11 @@
 package com.avensys.rts.candidate.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -17,6 +19,8 @@ import com.avensys.rts.candidate.interceptor.AuthInterceptor;
  */
 @Configuration
 public class AppConfig implements WebMvcConfigurer {
+	 @Autowired
+	 private AuthInterceptor authInterceptor;
 
     /**
      * This method is used to register the interceptors.
@@ -25,7 +29,7 @@ public class AppConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuditInterceptor());
-        registry.addInterceptor(new AuthInterceptor());
+        registry.addInterceptor(authInterceptor);
     }
 
     /**
@@ -40,5 +44,10 @@ public class AppConfig implements WebMvcConfigurer {
         messageSource.setBasenames("messages");
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
+    }
+    
+    @Bean
+    public RestTemplate restTemplate() {
+    	return new RestTemplate();
     }
 }

@@ -24,6 +24,7 @@ import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.payloadrequest.CandidateRequest;
 import com.avensys.rts.candidate.service.CandidateService;
+import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.ResponseUtil;
 
 /**
@@ -39,9 +40,10 @@ public class CandidateController {
 	private static final Logger LOG = LoggerFactory.getLogger(CandidateController.class);
 
 	@Autowired
-	private CandidateService candidateService;
+	private CandidateServiceImpl candidateService;
 	@Autowired
 	private MessageSource messageSource;
+	
 
 	/**
 	 * This method is used to save Candidate Data
@@ -54,6 +56,7 @@ public class CandidateController {
 	public ResponseEntity<?> saveCandidateData(@RequestHeader Map<String, String> headers,
 			@RequestBody CandidateRequest candidateRequest) {
 		LOG.info("saveCandidateData request received");
+		System.out.println("saveCandidateData :  "+candidateRequest);
 
 		CandidateEntity candidateEntity = candidateService.saveCandidateData(candidateRequest);
 		return ResponseUtil.generateSuccessResponse(candidateEntity, HttpStatus.CREATED,
