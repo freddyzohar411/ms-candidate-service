@@ -79,10 +79,10 @@ public class JwtUtil {
         Map<String, Object> resourceAccess = claims.get("resource_access", Map.class);
         List<String> allRoles = new ArrayList<>();
         if (resourceAccess != null) {
-            Map<String, Object> account = (Map<String, Object>) resourceAccess.get("account");
+            Map<String, Object> candidate = (Map<String, Object>) resourceAccess.get("candidate");
 
-            if (account != null) {
-                List<String> resourceRoles = (List<String>) account.get("roles");
+            if (candidate != null) {
+                List<String> resourceRoles = (List<String>) candidate.get("roles");
 
                 if (resourceRoles != null) {
                     allRoles.addAll(resourceRoles);
