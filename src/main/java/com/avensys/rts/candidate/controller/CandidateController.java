@@ -33,7 +33,7 @@ import com.avensys.rts.candidate.util.ResponseUtil;
  *         
  * 
  */
-@RestController
+//@RestController
 @RequestMapping("/api/candidates")
 public class CandidateController {
 
@@ -76,7 +76,7 @@ public class CandidateController {
 		LOG.info("updateCandidateData request received");
 		CandidateEntity candidateEntity = candidateService.updateCandidateData(id, candidateRequest);
 		return ResponseUtil.generateSuccessResponse(candidateEntity, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_UPDATED, null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 	/**
 	 * This method is used to delete candidate data
@@ -89,7 +89,7 @@ public class CandidateController {
 		LOG.info("deleteCandidateData request received");
 		candidateService.deleteCandidateData(id);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage(MessageConstants.CANDIDATE_DELETED, null, LocaleContextHolder.getLocale()));
 	}
 	/**
 	 * This method is used to retrieve a  candidate Information

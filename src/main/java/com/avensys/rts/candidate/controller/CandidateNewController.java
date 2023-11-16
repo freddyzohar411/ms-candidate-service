@@ -38,7 +38,7 @@ import jakarta.validation.Valid;
  */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@RequestMapping("/candidate")
+@RequestMapping("/candidates")
 public class CandidateNewController {
 
 	private final Logger LOG = LoggerFactory.getLogger(CandidateNewController.class);
@@ -58,7 +58,7 @@ public class CandidateNewController {
 	 * @param candidateNewRequestDTO
 	 * @return
 	 */
-	@PostMapping("/create")
+	@PostMapping("")
 	public ResponseEntity<Object> addCandidate(@Valid @ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO) {
 		LOG.info("Candidate create: Controller");
 		System.out.println("CandidateNewController: " + candidateNewRequestDTO);
@@ -84,7 +84,7 @@ public class CandidateNewController {
 	 * @param candidateNewRequestDTO
 	 * @return
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/{id}")
 	public ResponseEntity<Object>updateCandidate(@PathVariable int id,@ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO){
 		LOG.info("Candidate update: Controller");
 		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.updateCandidate(id,candidateNewRequestDTO);
@@ -130,11 +130,11 @@ public class CandidateNewController {
 	 * Get all candidate field for all forms related to candidates
 	 * @return
 	 */
-	@GetMapping("/fields")
-	public ResponseEntity<Object>getAllCandidatesFields(){
-	LOG.info("Candidate get all fields: Controller");
-	return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
-	}
+//	@GetMapping("/fields")
+//	public ResponseEntity<Object>getAllCandidatesFields(){
+//	LOG.info("Candidate get all fields: Controller");
+//	return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+//	}
 //
 //	@GetMapping("/search")
 //	public ResponseEntity<Object>searchCandidate(@RequestParam( value = "query",required = false)String query){
