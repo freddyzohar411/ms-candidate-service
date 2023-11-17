@@ -136,7 +136,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	@Override
 	public CandidateNewResponseDTO getCandidate(Integer id) {
 		// Get candidate data from candidate microservice
-		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false)
+		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 		return candidateEntityToCandidateResopnseDTO(candidateNewEntity);
 	}
@@ -148,7 +148,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		System.out.println(candidateNewRequestDTO);
 
 		// Get candidate data from candidate microservice
-		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false)
+		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false,true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 		// Update candidate data
 		candidateNewEntity.setFirstName(candidateNewRequestDTO.getFirstName());
@@ -172,7 +172,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 
 	@Override
 	public Set<FieldInformation> getAllCandidatesFields() {
-		List<CandidateNewEntity> candidateEntities = candidateNewRepository.findAllByUserAndDeleted(getUserId(), false);
+		List<CandidateNewEntity> candidateEntities = candidateNewRepository.findAllByUserAndDeleted(getUserId(), false, true);
 		if (candidateEntities.isEmpty()) {
 			return null;
 		}
@@ -201,7 +201,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	@Override
 	public void deleteDraftCandidate(Integer id) {
 		// Get candidate which is in draft state.
-		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDraft(id, true)
+		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDraft(id, true,true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 
 		// Delete all candidate form submission
@@ -215,7 +215,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	@Override
 	public CandidateNewResponseDTO getCandidateIfDraft() {
 		Optional<CandidateNewEntity> candidateNewEntity = candidateNewRepository
-				.findByUserAndDraftAndDeleted(getUserId(), true, false);
+				.findByUserAndDraftAndDeleted(getUserId(), true, false, true);
 		if (candidateNewEntity.isPresent()) {
 			return candidateEntityToCandidateResopnseDTO(candidateNewEntity.get());
 		}
@@ -225,7 +225,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	// Soft delete operation for candidate
 	@Override
 	public void softDeleteCandidate(Integer id) {
-		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false)
+		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 		// Soft delete the candidate
 		candidateNewEntity.setDeleted(true);
@@ -238,7 +238,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	@Override
 	public List<CandidateNewEntity> getAllCandidatesByUser(boolean draft, boolean deleted) {
 		List<CandidateNewEntity> CandidateEntities = candidateNewRepository.findAllByUserAndDraftAndDeleted(getUserId(),
-				draft, deleted);
+				draft, deleted,true);
 		return CandidateEntities;
 	}
 

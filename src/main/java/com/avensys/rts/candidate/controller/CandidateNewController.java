@@ -1,9 +1,11 @@
 package com.avensys.rts.candidate.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,71 +71,108 @@ public class CandidateNewController {
 
 	/**
 	 * This method is used to retrieve Candidate Data by id
+	 * 
 	 * @param id
 	 * @return
 	 */
 	@GetMapping("/{id}")
-	public ResponseEntity<Object>getCandidate(@PathVariable int id){
+	public ResponseEntity<Object> getCandidate(@PathVariable int id) {
 		LOG.info("Candidate get: Controller");
-		 CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.getCandidate(id);
-		 return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.getCandidate(id);
+		return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
 	/**
 	 * This method is used to update Candidate Data by id
+	 * 
 	 * @param id
 	 * @param candidateNewRequestDTO
 	 * @return
 	 */
 	@PutMapping("/{id}")
-	public ResponseEntity<Object>updateCandidate(@PathVariable int id,@ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO){
+	public ResponseEntity<Object> updateCandidate(@PathVariable int id,
+			@ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO) {
 		LOG.info("Candidate update: Controller");
-		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.updateCandidate(id,candidateNewRequestDTO);
-		return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_UPDATED, null, LocaleContextHolder.getLocale()));
+		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.updateCandidate(id,
+				candidateNewRequestDTO);
+		return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
+
 	/**
 	 * This method is used to delete draft Candidate
+	 * 
 	 * @param id
 	 * @return
 	 */
 	@DeleteMapping("/delete/draft/{id}")
-	public ResponseEntity<Object>deleteCandidate(@PathVariable int id){
+	public ResponseEntity<Object> deleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate delete: Controller");
 		candidateNewService.deleteDraftCandidate(id);
-		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_DELETED, null, LocaleContextHolder.getLocale()));
-		
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_DELETED, null, LocaleContextHolder.getLocale()));
+
 	}
+
 	/**
 	 * Get candidate draft if exists
+	 * 
 	 * @return
 	 */
 	@GetMapping("/draft")
-	public ResponseEntity<Object>getCandidateIfDraft(){
-	LOG.info("Candidate get: Controller");	
-	CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.getCandidateIfDraft();
-	return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	public ResponseEntity<Object> getCandidateIfDraft() {
+		LOG.info("Candidate get: Controller");
+		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.getCandidateIfDraft();
+		return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	/**
 	 * Soft delete existing candidate
+	 * 
 	 * @param id
 	 * @return
 	 */
 	@DeleteMapping("/soft/delete/{id}")
-	public ResponseEntity<Object> softDeleteCandidate (@PathVariable int id){
+	public ResponseEntity<Object> softDeleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate soft delete: Controller");
 		candidateNewService.softDeleteCandidate(id);
-		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_DELETED, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_DELETED, null, LocaleContextHolder.getLocale()));
 	}
-	
 
 	/**
 	 * Get all candidate field for all forms related to candidates
+	 * 
 	 * @return
 	 */
 	@GetMapping("/fields")
-	public ResponseEntity<Object>getAllCandidatesFields(){
-	LOG.info("Candidate get all fields: Controller");
-	return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFields(), HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	public ResponseEntity<Object> getAllCandidatesFields() {
+		LOG.info("Candidate get all fields: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFields(), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("/listing")
+	public ResponseEntity<Object> getAccountListing(@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
+		LOG.info("Candidate get all fields: Controller");
+		Integer page = accountListingRequestDTO.getPage();
+		Integer pageSize = accountListingRequestDTO.getPageSize();
+		String sortBy = accountListingRequestDTO.getSortBy();
+		String sortDirection = accountListingRequestDTO.getSortDirection();
+		String searchTerm = accountListingRequestDTO.getSearchTerm();
+		List<String> searchFields = accountListingRequestDTO.getSearchFields();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		}
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+						searchFields),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 //
 //	@GetMapping("/search")
