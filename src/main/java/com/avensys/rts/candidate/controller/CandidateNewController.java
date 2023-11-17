@@ -130,11 +130,11 @@ public class CandidateNewController {
 	 * Get all candidate field for all forms related to candidates
 	 * @return
 	 */
-//	@GetMapping("/fields")
-//	public ResponseEntity<Object>getAllCandidatesFields(){
-//	LOG.info("Candidate get all fields: Controller");
-//	return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//	}
+	@GetMapping("/fields")
+	public ResponseEntity<Object>getAllCandidatesFields(){
+	LOG.info("Candidate get all fields: Controller");
+	return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFields(), HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
 //
 //	@GetMapping("/search")
 //	public ResponseEntity<Object>searchCandidate(@RequestParam( value = "query",required = false)String query){

@@ -18,7 +18,7 @@ public interface CandidateNewService {
 	
 	CandidateNewResponseDTO updateCandidate(Integer id,CandidateNewRequestDTO candidateNewRequestDTO);
 	
-	//Set<FieldInformation>getAllCandidatesFieldsNew();
+	Set<FieldInformation>getAllCandidatesFields();
 	
 	void deleteDraftCandidate (Integer id);
 	
