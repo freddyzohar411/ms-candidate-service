@@ -242,6 +242,18 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		return CandidateEntities;
 	}
 
+	@Override
+	public CandidateNewResponseDTO completeCandidateCreate(Integer id) {
+		// Get candidate data from candidate microservice
+		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+		// Update candidate data
+		candidateNewEntity.setDraft(false);
+		candidateNewEntity.setUpdatedBy(getUserId());
+		candidateNewRepository.save(candidateNewEntity);
+		return candidateEntityToCandidateResopnseDTO(candidateNewEntity);
+	}
+
 	// Candidate Listing page with search
 	@Override
 	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,

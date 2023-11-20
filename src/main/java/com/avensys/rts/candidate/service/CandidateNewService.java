@@ -32,4 +32,7 @@ public interface CandidateNewService {
 	
 	List<CandidateNewEntity>getAllCandidatesByUser(boolean draft, boolean deleted);
 
+	CandidateNewResponseDTO completeCandidateCreate(Integer id);
+
+
 }

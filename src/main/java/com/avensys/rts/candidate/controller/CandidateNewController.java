@@ -116,6 +116,17 @@ public class CandidateNewController {
 	}
 
 	/**
+	 * Complet Candidate creation
+	 */
+	@PutMapping ("/{id}/complete")
+	public ResponseEntity<Object> completeCandidateCreate(@PathVariable int id) {
+		LOG.info("Candidate complete: Controller");
+		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.completeCandidateCreate(id);
+		return ResponseUtil.generateSuccessResponse(candidateNewResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
 	 * Get candidate draft if exists
 	 * 
 	 * @return
@@ -155,7 +166,7 @@ public class CandidateNewController {
 	}
 
 	@PostMapping("/listing")
-	public ResponseEntity<Object> getAccountListing(@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
+	public ResponseEntity<Object> getCandidateListing(@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
 		LOG.info("Candidate get all fields: Controller");
 		Integer page = accountListingRequestDTO.getPage();
 		Integer pageSize = accountListingRequestDTO.getPageSize();
