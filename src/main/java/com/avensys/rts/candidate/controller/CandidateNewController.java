@@ -101,12 +101,12 @@ public class CandidateNewController {
 	}
 
 	/**
-	 * This method is used to delete draft Candidate
+	 * This method is used to delete draft Candidate (Hard Delete)
 	 * 
 	 * @param id
 	 * @return
 	 */
-	@DeleteMapping("/delete/draft/{id}")
+	@DeleteMapping("/draft/{id}")
 	public ResponseEntity<Object> deleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate delete: Controller");
 		candidateNewService.deleteDraftCandidate(id);
@@ -145,7 +145,7 @@ public class CandidateNewController {
 	 * @param id
 	 * @return
 	 */
-	@DeleteMapping("/soft/delete/{id}")
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> softDeleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate soft delete: Controller");
 		candidateNewService.softDeleteCandidate(id);
