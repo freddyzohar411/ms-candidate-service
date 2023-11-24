@@ -25,7 +25,7 @@ public class CandidateNewRequestDTO {
 	private double candidateCurrentSalary;
 	private double candidateExpectedSalary;
 	private String reasonForChange;
-	private double noticePeriod;
+	private String noticePeriod;
 	private String profileSummary;
 	private String primarySkills;
 	private String secondarySkills;

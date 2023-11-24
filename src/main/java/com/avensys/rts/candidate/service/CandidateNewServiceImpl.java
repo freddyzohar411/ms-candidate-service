@@ -5,6 +5,7 @@ import java.util.*;
 //import java.util.ArrayList;
 //import java.util.List;
 
+import com.avensys.rts.candidate.APIClient.*;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.util.StringUtil;
 import org.slf4j.Logger;
@@ -15,8 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.avensys.rts.candidate.APIClient.FormSubmissionAPIClient;
-import com.avensys.rts.candidate.APIClient.UserAPIClient;
 import com.avensys.rts.candidate.entity.CandidateNewEntity;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateNewRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
@@ -36,6 +35,21 @@ import jakarta.transaction.Transactional;
 public class CandidateNewServiceImpl implements CandidateNewService {
 
 	private final Logger LOG = LoggerFactory.getLogger(CandidateServiceImpl.class);
+
+	private final String CANDIDATE_BASIC_INFO_ENTITY_TYPE = "candidate_basic_info";
+
+	@Autowired
+	private EducationDetailsAPIClient educationDetailsAPIClient;
+	@Autowired
+	private EmployerDetailsAPIClient employerDetailsAPIClient;
+	@Autowired
+	private LanguagesAPIClient languagesAPIClient;
+	@Autowired
+	private CertificationAPIClient certificationAPIClient;
+	@Autowired
+	private WorkExperienceAPIClient workExperienceAPIClient;
+	@Autowired
+	private DocumentAPIClient documentAPIClient;
 	@Autowired
 	private CandidateNewRepository candidateNewRepository;
 	@Autowired
@@ -115,7 +129,6 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
-		System.out.println("Hiiiiiiiiiiiiiiiiiii: " + email);
 		HttpResponse userResponse = userAPIClient.getUserByEmail(email);
 		UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
 		return userData.getId();
@@ -129,7 +142,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		formSubmissionsRequestDTO
 				.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(candidateNewRequestDTO.getFormData()));
 		formSubmissionsRequestDTO.setEntityId(candidateNewEntity.getId());
-		formSubmissionsRequestDTO.setEntityType(null);
+		formSubmissionsRequestDTO.setEntityType(CANDIDATE_BASIC_INFO_ENTITY_TYPE);
 		return formSubmissionsRequestDTO;
 	}
 
@@ -199,19 +212,37 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 
 	// Delete Draft candidate (Incomplete)
 	@Override
+	@Transactional
 	public void deleteDraftCandidate(Integer id) {
 		// Get candidate which is in draft state.
 		CandidateNewEntity candidateNewEntity = candidateNewRepository.findByIdAndDraft(id, true,true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+
+		// Delete all the document service related to candidate
+		HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("candidate_documents", id);
+		// Delete all the work experience
+		HttpResponse workExperienceResponse = workExperienceAPIClient.deleteWorkExperienceByEntityTypeAndEntityId("candidate_work_experience", id);
+		// Delete all the education
+		HttpResponse educationResponse = educationDetailsAPIClient.deleteEducationDetailsByEntityTypeAndEntityId("candidate_education_details", id);
+		// Delete all the certification
+		HttpResponse certificationResponse = certificationAPIClient.deleteCertificationsByEntityTypeAndEntityId("candidate_certification", id);
+		// Delete all the languages
+		HttpResponse languagesResponse = languagesAPIClient.deleteLanguagesByEntityTypeAndEntityId("candidate_languages", id);
+		// Delete all the employer details
+		HttpResponse employerDetailsResponse = employerDetailsAPIClient.deleteEmployerDetailsByEntityTypeAndEntityId("candidate_employer_details", id);
 
 		// Delete all candidate form submission
 		if (candidateNewEntity.getFormSubmissionId() != null) {
 			HttpResponse formSubmissionResponse = formSubmissionAPIClient
 					.deleteFormSubmission(candidateNewEntity.getFormSubmissionId());
 		}
+
+		// Delete the entire candidate
+		candidateNewRepository.delete(candidateNewEntity);
+
 	}
 
-	//
+	// Get candidate if draft
 	@Override
 	public CandidateNewResponseDTO getCandidateIfDraft() {
 		Optional<CandidateNewEntity> candidateNewEntity = candidateNewRepository
@@ -242,6 +273,7 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		return CandidateEntities;
 	}
 
+	// Complete candidate creation (Set draft to false)
 	@Override
 	public CandidateNewResponseDTO completeCandidateCreate(Integer id) {
 		// Get candidate data from candidate microservice
