@@ -61,18 +61,6 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
 
-	public void test() {
-		System.out.println("CandidateNewServiceImpl");
-		System.out.println(userUtil.getUserGroupIdsAsString());
-	}
-
-	@Override
-	public CandidateListingNewResponseDTO getCandidateListingPage2(Integer page, Integer size, String sortBy,
-			String sortDirection) {
-
-		return null;
-	}
-
 	@Override
 	@Transactional
 	public CandidateNewResponseDTO createCandidate(CandidateNewRequestDTO candidateNewRequestDTO) {
@@ -399,10 +387,10 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		Page<CandidateNewEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumericWithUserGroups(Set.of(1L, 2L, 8L), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumericWithUserGroups(userUtil.getUserGroupIds(), false, false, true,
 					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByStringWithUserGroups(Set.of(1L, 2L,  8L), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByStringWithUserGroups(userUtil.getUserGroupIds(), false, false, true,
 					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
@@ -423,10 +411,10 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<CandidateNewEntity> candidateEntitiesPage = null;
 		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumericWithUserGroups(Set.of(1L, 2L,8L), false, false,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumericWithUserGroups(userUtil.getUserGroupIds(), false, false,
 					true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchStringWithUserGroups(Set.of(1L, 2L,  8L), false, false,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchStringWithUserGroups(userUtil.getUserGroupIds(), false, false,
 					true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);

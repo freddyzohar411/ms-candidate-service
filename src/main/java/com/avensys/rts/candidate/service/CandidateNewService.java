@@ -34,11 +34,5 @@ public interface CandidateNewService {
 
 	CandidateNewResponseDTO completeCandidateCreate(Integer id);
 
-	void test();
-
-	CandidateListingNewResponseDTO getCandidateListingPage2(Integer page, Integer size, String sortBy, String sortDirection);
-
-//	CandidateListingNewResponseDTO getCandidateListingPageWithSearch2(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields);
-
 
 }
