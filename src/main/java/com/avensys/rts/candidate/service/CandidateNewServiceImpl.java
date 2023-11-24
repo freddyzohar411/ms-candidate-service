@@ -8,6 +8,7 @@ import java.util.*;
 import com.avensys.rts.candidate.APIClient.*;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.util.StringUtil;
+import com.avensys.rts.candidate.util.UserUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	private final String CANDIDATE_BASIC_INFO_ENTITY_TYPE = "candidate_basic_info";
 
 	@Autowired
+	private UserUtil userUtil;
+
+	@Autowired
 	private EducationDetailsAPIClient educationDetailsAPIClient;
 	@Autowired
 	private EmployerDetailsAPIClient employerDetailsAPIClient;
@@ -56,6 +60,18 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 	private UserAPIClient userAPIClient;
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+
+	public void test() {
+		System.out.println("CandidateNewServiceImpl");
+		System.out.println(userUtil.getUserGroupIdsAsString());
+	}
+
+	@Override
+	public CandidateListingNewResponseDTO getCandidateListingPage2(Integer page, Integer size, String sortBy,
+			String sortDirection) {
+
+		return null;
+	}
 
 	@Override
 	@Transactional
@@ -179,7 +195,8 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 				.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
 		// Added - Update candidateSubmissionData
-		candidateNewEntity.setCandidateSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+		candidateNewEntity.setCandidateSubmissionData(formSubmissionData.getSubmissionData());
+		candidateNewRepository.save(candidateNewEntity);
 		return candidateEntityToCandidateResopnseDTO(candidateNewEntity);
 	}
 
@@ -282,35 +299,36 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		// Update candidate data
 		candidateNewEntity.setDraft(false);
 		candidateNewEntity.setUpdatedBy(getUserId());
+		candidateNewEntity.setCreatedByUserGroupsId(userUtil.getUserGroupIdsAsString());
 		candidateNewRepository.save(candidateNewEntity);
 		return candidateEntityToCandidateResopnseDTO(candidateNewEntity);
 	}
 
 	// Candidate Listing page with search
-	@Override
-	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields) {
-		// Get sort direction
-		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
-		if (sortDirection != null) {
-			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-		}
-		if (sortBy == null) {
-			sortBy = "updated_at";
-			direction = Sort.Direction.DESC;
-		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-		Page<CandidateNewEntity> candidateEntitiesPage = null;
-		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumeric(getUserId(), false, false,
-					true, pageRequest, searchFields, searchTerm);
-
-		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchString(getUserId(), false, false,
-					true, pageRequest, searchFields, searchTerm);
-		}
-		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
-	}
+//	@Override
+//	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
+//			String sortDirection, String searchTerm, List<String> searchFields) {
+//		// Get sort direction
+//		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+//		if (sortDirection != null) {
+//			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+//		}
+//		if (sortBy == null) {
+//			sortBy = "updated_at";
+//			direction = Sort.Direction.DESC;
+//		}
+//		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//		Page<CandidateNewEntity> candidateEntitiesPage = null;
+//		try {
+//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumeric(getUserId(), false, false,
+//					true, pageRequest, searchFields, searchTerm);
+//
+//		} catch (Exception e) {
+//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchString(getUserId(), false, false,
+//					true, pageRequest, searchFields, searchTerm);
+//		}
+//		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+//	}
 
 	private CandidateListingNewResponseDTO pageCandidateListingToCandidateListingResponseDTO(
 			Page<CandidateNewEntity> candidateNewEntitiesPage) {
@@ -340,6 +358,31 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		return candidateListingNewResponseDTO;
 	}
 
+//	@Override
+//	public CandidateListingNewResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
+//			String sortDirection) {
+//		// Get sort direction
+//		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+//		if (sortDirection != null && !sortDirection.isEmpty()) {
+//			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+//		}
+//		if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
+//			sortBy = "updated_at";
+//			direction = Sort.Direction.DESC;
+//		}
+//		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//		Page<CandidateNewEntity> candidateEntitiesPage = null;
+//		// Try with numeric first else try with string (jsonb)
+//		try {
+//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumeric(getUserId(), false, false, true,
+//					pageRequest);
+//		} catch (Exception e) {
+//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByString(getUserId(), false, false, true,
+//					pageRequest);
+//		}
+//		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+//	}
+
 	@Override
 	public CandidateListingNewResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
 			String sortDirection) {
@@ -356,16 +399,41 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		Page<CandidateNewEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumeric(getUserId(), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumericWithUserGroups(Set.of(1L, 2L, 8L), false, false, true,
 					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByString(getUserId(), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByStringWithUserGroups(Set.of(1L, 2L,  8L), false, false, true,
 					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
 
-//	@Override
+	@Override
+	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
+			String sortDirection, String searchTerm, List<String> searchFields) {
+		// Get sort direction
+		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+		if (sortDirection != null) {
+			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+		}
+		if (sortBy == null) {
+			sortBy = "updated_at";
+			direction = Sort.Direction.DESC;
+		}
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		Page<CandidateNewEntity> candidateEntitiesPage = null;
+		try {
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumericWithUserGroups(Set.of(1L, 2L,8L), false, false,
+					true, pageRequest, searchFields, searchTerm);
+		} catch (Exception e) {
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchStringWithUserGroups(Set.of(1L, 2L,  8L), false, false,
+					true, pageRequest, searchFields, searchTerm);
+		}
+		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+	}
+
+
+	//	@Override
 //	public List<CandidateNewEntity> getAllCandidatesWithSearch(String query) {
 //		List<CandidateNewEntity>candidateEntities = candidateNewRepository.getAllCandidatesWithSearch(query, getUserId(), false, false);
 //		return candidateEntities;

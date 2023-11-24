@@ -12,4 +12,7 @@ public class MessageConstants {
     public static final String CANDIDATE_NOT_FOUND = "candidate.notfound";
     public static final String CANDIDATE_EXIST = "candidate.exist";
 
+	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
+
+
 }

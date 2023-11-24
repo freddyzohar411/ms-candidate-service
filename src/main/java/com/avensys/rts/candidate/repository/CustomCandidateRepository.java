@@ -3,6 +3,8 @@ package com.avensys.rts.candidate.repository;
 
 
 import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,5 +29,19 @@ public interface CustomCandidateRepository {
 	  Page<CandidateNewEntity>findAllByOrderByAndSearchNumeric(Integer userId,
 	  Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 	  searchFields, String searchTerm);
-	 
+
+	  // With user groups
+	  Page<CandidateNewEntity>findAllByOrderByStringWithUserGroups(Set<Long> userGroupIds, Boolean
+			  isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<CandidateNewEntity>findAllByOrderByNumericWithUserGroups(Set<Long> userGroupIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<CandidateNewEntity>findAllByOrderByAndSearchStringWithUserGroups(Set<Long> userGroupIds,
+			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
+			searchFields, String searchTerm);
+
+	Page<CandidateNewEntity>findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
+			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
+			searchFields, String searchTerm);
 }

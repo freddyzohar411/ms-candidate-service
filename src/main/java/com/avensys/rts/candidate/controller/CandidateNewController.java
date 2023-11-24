@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
+import com.avensys.rts.candidate.enums.Permission;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +62,7 @@ public class CandidateNewController {
 	 * @param candidateNewRequestDTO
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_WRITE })
 	@PostMapping("")
 	public ResponseEntity<Object> addCandidate(@Valid @ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO) {
 		LOG.info("Candidate create: Controller");
@@ -75,6 +78,7 @@ public class CandidateNewController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@GetMapping("/{id}")
 	public ResponseEntity<Object> getCandidate(@PathVariable int id) {
 		LOG.info("Candidate get: Controller");
@@ -90,6 +94,7 @@ public class CandidateNewController {
 	 * @param candidateNewRequestDTO
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_EDIT })
 	@PutMapping("/{id}")
 	public ResponseEntity<Object> updateCandidate(@PathVariable int id,
 			@ModelAttribute CandidateNewRequestDTO candidateNewRequestDTO) {
@@ -106,6 +111,7 @@ public class CandidateNewController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_DELETE })
 	@DeleteMapping("/draft/{id}")
 	public ResponseEntity<Object> deleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate delete: Controller");
@@ -118,7 +124,8 @@ public class CandidateNewController {
 	/**
 	 * Complet Candidate creation
 	 */
-	@PutMapping ("/{id}/complete")
+	@RequiresAllPermissions({ Permission.CANDIDATE_WRITE })
+	@PutMapping("/{id}/complete")
 	public ResponseEntity<Object> completeCandidateCreate(@PathVariable int id) {
 		LOG.info("Candidate complete: Controller");
 		CandidateNewResponseDTO candidateNewResponseDTO = candidateNewService.completeCandidateCreate(id);
@@ -131,6 +138,7 @@ public class CandidateNewController {
 	 * 
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_WRITE })
 	@GetMapping("/draft")
 	public ResponseEntity<Object> getCandidateIfDraft() {
 		LOG.info("Candidate get: Controller");
@@ -145,6 +153,7 @@ public class CandidateNewController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_DELETE })
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> softDeleteCandidate(@PathVariable int id) {
 		LOG.info("Candidate soft delete: Controller");
@@ -158,6 +167,7 @@ public class CandidateNewController {
 	 * 
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@GetMapping("/fields")
 	public ResponseEntity<Object> getAllCandidatesFields() {
 		LOG.info("Candidate get all fields: Controller");
@@ -165,8 +175,10 @@ public class CandidateNewController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing")
-	public ResponseEntity<Object> getCandidateListing(@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
+	public ResponseEntity<Object> getCandidateListing(
+			@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
 		LOG.info("Candidate get all fields: Controller");
 		Integer page = accountListingRequestDTO.getPage();
 		Integer pageSize = accountListingRequestDTO.getPageSize();
@@ -177,7 +189,8 @@ public class CandidateNewController {
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,

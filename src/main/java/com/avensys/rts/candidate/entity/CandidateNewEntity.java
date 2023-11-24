@@ -68,4 +68,7 @@ public class CandidateNewEntity {
 	@Column(name = "candidate_submission_data")
 	private JsonNode candidateSubmissionData;
 
+	@Column(name = "created_by_user_groups_id", columnDefinition="TEXT")
+	private String createdByUserGroupsId;
+
 }
