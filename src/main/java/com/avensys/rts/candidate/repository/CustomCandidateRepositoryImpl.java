@@ -587,4 +587,261 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		return new PageImpl<>(resultList, pageable, countResult);
 	}
 
+	@Override
+	public Page<CandidateNewEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, Pageable pageable) {
+
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// Build the complete query string with user filter and excluding NULLs
+		String queryString = String.format(
+				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("userIds", userIds);
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<CandidateNewEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		countQuery.setParameter("userIds", userIds);
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	@Override
+	public Page<CandidateNewEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, Pageable pageable) {
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// Build the complete query string with user filter and excluding NULLs
+		String queryString = String.format(
+				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("userIds", userIds);
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<CandidateNewEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		countQuery.setParameter("userIds", userIds);
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	@Override
+	public Page<CandidateNewEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String orderByClause;
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+		} else {
+			orderByClause = sortBy;
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// Build the dynamic search conditions based on searchFields
+		StringBuilder searchConditions = new StringBuilder();
+		for (int i = 0; i < searchFields.size(); i++) {
+			String field = searchFields.get(i);
+			if (field.contains(".")) { // assuming field is in the format "jsonColumn.jsonKey"
+				String[] parts = field.split("\\.");
+				String jsonColumnName = parts[0];
+				String jsonKey = parts[1];
+				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
+			} else {
+				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
+			}
+		}
+
+		// Remove the leading " OR " from the searchConditions
+		if (searchConditions.length() > 0) {
+			searchConditions.delete(0, 4);
+		}
+
+		// Build the complete query string
+		String queryString = String.format(
+				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("userIds", userIds);
+		query.setParameter("searchTerm", "%" + searchTerm + "%");
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<CandidateNewEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				searchConditions.toString());
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		countQuery.setParameter("userIds", userIds);
+		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	@Override
+	public Page<CandidateNewEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String orderByClause;
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+		} else {
+			orderByClause = sortBy;
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// Build the dynamic search conditions based on searchFields
+		StringBuilder searchConditions = new StringBuilder();
+		for (int i = 0; i < searchFields.size(); i++) {
+			String field = searchFields.get(i);
+			if (field.contains(".")) { // assuming field is in the format "jsonColumn.jsonKey"
+				String[] parts = field.split("\\.");
+				String jsonColumnName = parts[0];
+				String jsonKey = parts[1];
+				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
+			} else {
+				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
+			}
+		}
+
+		// Remove the leading " OR " from the searchConditions
+		if (searchConditions.length() > 0) {
+			searchConditions.delete(0, 4);
+		}
+
+		// Build the complete query string
+		String queryString = String.format(
+				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("userIds", userIds);
+		query.setParameter("searchTerm", "%" + searchTerm + "%");
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<CandidateNewEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				searchConditions.toString());
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		countQuery.setParameter("userIds", userIds);
+		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
 }

@@ -44,4 +44,19 @@ public interface CustomCandidateRepository {
 	Page<CandidateNewEntity>findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 			searchFields, String searchTerm);
+
+	// Check only user id
+	Page<CandidateNewEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<CandidateNewEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<CandidateNewEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
+			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
+			searchFields, String searchTerm);
+
+	Page<CandidateNewEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
+			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
+			searchFields, String searchTerm);
 }

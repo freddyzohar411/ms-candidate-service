@@ -29,6 +29,11 @@ public class UserUtil {
 		return mapUserDetailsToUserGroupIds(userDetailsResponse);
 	}
 
+	public List<Long> getUsersIdUnderManager() {
+		HttpResponse response = userAPIClient.getUsersUnderManager();
+			return (List<Long>) response.getData();
+	}
+
 	public String getUserGroupIdsAsString() {
 		Set<Long> userGroupIds = getUserGroupIds();
 		StringJoiner joiner = new StringJoiner(",");
@@ -164,6 +169,8 @@ public class UserUtil {
 
 		return userGroupIds;
 	}
+
+
 
 
 }

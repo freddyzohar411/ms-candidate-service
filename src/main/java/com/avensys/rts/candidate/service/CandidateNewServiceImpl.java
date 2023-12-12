@@ -387,10 +387,10 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		Page<CandidateNewEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumericWithUserGroups(userUtil.getUserGroupIds(), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, false, true,
 					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByStringWithUserGroups(userUtil.getUserGroupIds(), false, false, true,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false, false, true,
 					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
@@ -411,10 +411,10 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<CandidateNewEntity> candidateEntitiesPage = null;
 		try {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumericWithUserGroups(userUtil.getUserGroupIds(), false, false,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, false,
 					true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchStringWithUserGroups(userUtil.getUserGroupIds(), false, false,
+			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(), false, false,
 					true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
