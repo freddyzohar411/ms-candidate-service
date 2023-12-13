@@ -20,7 +20,10 @@ public interface CandidateNewRepository extends JpaRepository<CandidateNewEntity
 	
 	@Query(value = "SELECT c FROM candidateNew c WHERE c.createdBy = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
 	List<CandidateNewEntity> findAllByUserAndDeleted(Integer createdBy, boolean isDeleted, boolean isActive);
-	
+
+	@Query(value = "SELECT a FROM candidateNew a WHERE a.createdBy IN (?1) AND a.isDeleted = ?2 AND a.isActive = ?3")
+	List<CandidateNewEntity> findAllByUserIdsAndDeleted(List<Long> createdByList, boolean isDeleted, boolean isActive);
+
 	@Query(value = "SELECT c FROM candidateNew c WHERE c.id = ?1 AND c.isDraft = ?2 AND c.isActive = ?3")
 	Optional<CandidateNewEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
 	

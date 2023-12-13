@@ -190,11 +190,11 @@ public class CandidateNewServiceImpl implements CandidateNewService {
 
 	@Override
 	public Set<FieldInformation> getAllCandidatesFields() {
-		List<CandidateNewEntity> candidateEntities = candidateNewRepository.findAllByUserAndDeleted(getUserId(), false, true);
+		List<CandidateNewEntity> candidateEntities = candidateNewRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
 		if (candidateEntities.isEmpty()) {
 			return null;
 		}
-
+		
 		// Declare a new haspmap to store the label and value
 		Set<FieldInformation> fieldColumn = new HashSet<>();
 		fieldColumn.add(new FieldInformation("Created At", "createdAt", true, "created_at"));
