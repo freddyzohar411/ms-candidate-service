@@ -3,11 +3,11 @@ package com.avensys.rts.candidate.util;
 import java.util.*;
 
 import com.avensys.rts.candidate.APIClient.UserAPIClient;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.user.ModuleResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.user.RoleResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.user.UserDetailsResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.user.UserGroupResponseDTO;
-import com.avensys.rts.candidate.payloadresponse.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,7 @@ public class UserUtil {
 	}
 
 	public List<Long> getUsersIdUnderManager() {
-		HttpResponse response = userAPIClient.getUsersUnderManager();
+		CandidateResponseDTO.HttpResponse response = userAPIClient.getUsersUnderManager();
 			return (List<Long>) response.getData();
 	}
 
@@ -128,7 +128,7 @@ public class UserUtil {
 	}
 
 	public UserDetailsResponseDTO getUserDetails() {
-		HttpResponse userResponse = userAPIClient.getUserDetail();
+		CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserDetail();
 		UserDetailsResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserDetailsResponseDTO.class);
 		return userData;
 	}

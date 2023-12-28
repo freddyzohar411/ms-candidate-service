@@ -6,7 +6,7 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import com.avensys.rts.candidate.entity.CandidateNewEntity;
+import com.avensys.rts.candidate.entity.CandidateEntity;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,7 +18,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	private EntityManager entityManager;
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft,
+	public Page<CandidateEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable) {
 		String sortBy = pageable.getSort().get().findFirst().get().getProperty();
 		// Determine if sortBy is a regular column or a JSONB column
@@ -43,7 +43,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
@@ -52,7 +52,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
@@ -70,7 +70,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft,
+	public Page<CandidateEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable) {
 		String sortBy = pageable.getSort().get().findFirst().get().getProperty();
 		// Determine if sortBy is a regular column or a JSONB column
@@ -94,7 +94,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
@@ -103,7 +103,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
@@ -122,7 +122,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
+	public Page<CandidateEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable) {
 		String sortBy = pageable.getSort().get().findFirst().get().getProperty();
 		// Determine if sortBy is a regular column or a JSONB column
@@ -149,7 +149,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		System.out.println(queryString);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
@@ -158,7 +158,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
@@ -176,7 +176,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft,
+	public Page<CandidateEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -222,7 +222,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
@@ -232,7 +232,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
@@ -253,7 +253,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
+	public Page<CandidateEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -299,7 +299,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
@@ -309,7 +309,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
@@ -330,7 +330,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByStringWithUserGroups(Set<Long> userGroupIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByStringWithUserGroups(Set<Long> userGroupIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -355,7 +355,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -364,7 +364,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by_user_groups_id IS NOT NULL AND (SELECT COUNT(*) FROM UNNEST(string_to_array(created_by_user_groups_id, ',')) AS grp WHERE CAST(grp AS bigint) IN (:userGroupIds)) > 0";
@@ -382,7 +382,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByNumericWithUserGroups(Set<Long> userGroupIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByNumericWithUserGroups(Set<Long> userGroupIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -407,7 +407,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -416,7 +416,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by_user_groups_id IS NOT NULL AND (SELECT COUNT(*) FROM UNNEST(string_to_array(created_by_user_groups_id, ',')) AS grp WHERE CAST(grp AS bigint) IN (:userGroupIds)) > 0";
@@ -434,7 +434,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchStringWithUserGroups(Set<Long> userGroupIds,
+	public Page<CandidateEntity> findAllByOrderByAndSearchStringWithUserGroups(Set<Long> userGroupIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields,
 			String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
@@ -480,7 +480,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -490,7 +490,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
@@ -511,7 +511,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
+	public Page<CandidateEntity> findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields,
 			String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
@@ -557,7 +557,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -567,7 +567,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
@@ -588,7 +588,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable) {
 
 		// Determine if sortBy is a regular column or a JSONB column
@@ -610,11 +610,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -623,10 +623,10 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = "SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -641,7 +641,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -662,11 +662,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -675,10 +675,10 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = "SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -693,7 +693,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -734,11 +734,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -748,11 +748,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
 				searchConditions.toString());
 
 		// Create and execute the count query
@@ -769,7 +769,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateNewEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+	public Page<CandidateEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -810,11 +810,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM candidate_new WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
-		Query query = entityManager.createNativeQuery(queryString, CandidateNewEntity.class);
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
@@ -824,11 +824,11 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setMaxResults(pageable.getPageSize());
 
 		// Get the result list
-		List<CandidateNewEntity> resultList = query.getResultList();
+		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM candidate_new WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
 				searchConditions.toString());
 
 		// Create and execute the count query

@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class CandidateListingNewResponseDTO {
+public class CandidateListingResponseDTO {
 	private Integer totalPages;
     private Long totalElements;
     private Integer page;
     private Integer pageSize;
     
-    private List<CandidateNewListingDataDTO> candidates;
+    private List<CandidateListingDataDTO> candidates;
 
 }

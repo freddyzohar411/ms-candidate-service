@@ -1,47 +1,38 @@
 package com.avensys.rts.candidate.service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
-import com.avensys.rts.candidate.payloadrequest.CandidateRequest;
+import com.avensys.rts.candidate.model.FieldInformation;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 
 public interface CandidateService {
-
-	/**
-	 * This method is used to save Candidate Data
-	 * @param candidateRequest
-	 * @return
-	 */
-	public CandidateEntity saveCandidateData(CandidateRequest candidateRequest);
-
-	/**
-	 * This method is used to retrieve a  candidate Information
-	 * @param id
-	 * @return
-	 */
-	public CandidateEntity getCandidateData(Integer id);
-
-	/**
-	 * This method is used to update candidate data
-	 * @param id
-	 * @param candidateRequest
-	 * @return
-	 */
-	public CandidateEntity updateCandidateData(Integer id, CandidateRequest candidateRequest);
-
-	/**
-	 * This method is used to delete candidate data
-	 * @param id
-	 */
-	public void deleteCandidateData(Integer id);
-
-	/**
-	 * 
-	 * @return
-	 */
-	public List<CandidateEntity> getAllCandidateData();
-
+	CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO);
 	
+	CandidateResponseDTO getCandidate(Integer id);
+	
+	CandidateResponseDTO getCandidateIfDraft();
+	
+	CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO);
+	
+	Set<FieldInformation>getAllCandidatesFields();
+	
+	void deleteDraftCandidate (Integer id);
+	
+	void softDeleteCandidate(Integer id);
+	
+	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection);
+	
+	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields);
+	
+	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
+	
+	List<CandidateEntity>getAllCandidatesByUser(boolean draft, boolean deleted);
+
+	CandidateResponseDTO completeCandidateCreate(Integer id);
+
+
 }
-
-	

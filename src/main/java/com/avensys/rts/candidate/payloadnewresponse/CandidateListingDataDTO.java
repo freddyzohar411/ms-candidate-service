@@ -2,7 +2,7 @@ package com.avensys.rts.candidate.payloadnewresponse;
 
 import java.time.LocalDateTime;
 
-import com.avensys.rts.candidate.entity.CandidateNewEntity;
+import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CandidateNewListingDataDTO {
+public class CandidateListingDataDTO {
 	private Integer id;
     private JsonNode candidateSubmissionData;
     private String firstName;
@@ -19,13 +19,13 @@ public class CandidateNewListingDataDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    public CandidateNewListingDataDTO(CandidateNewEntity candidateNewEntity) {
-    	this.id = candidateNewEntity.getId();
-    	this.candidateSubmissionData = candidateNewEntity.getCandidateSubmissionData();
-    	this.firstName = candidateNewEntity.getFirstName();
-    	this.lastName = candidateNewEntity.getLastName();
-    	this.createdAt = candidateNewEntity.getCreatedAt();
-    	this.updatedAt = candidateNewEntity.getUpdatedAt();
+    public CandidateListingDataDTO(CandidateEntity candidateEntity) {
+    	this.id = candidateEntity.getId();
+    	this.candidateSubmissionData = candidateEntity.getCandidateSubmissionData();
+    	this.firstName = candidateEntity.getFirstName();
+    	this.lastName = candidateEntity.getLastName();
+    	this.createdAt = candidateEntity.getCreatedAt();
+    	this.updatedAt = candidateEntity.getUpdatedAt();
     		
     }
     private String createdByName;

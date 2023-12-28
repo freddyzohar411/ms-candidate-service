@@ -3,6 +3,7 @@ package com.avensys.rts.candidate.custombody;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-
-import com.avensys.rts.candidate.payloadresponse.HttpResponse;
 
 /***
  *
@@ -52,7 +51,7 @@ public class CustomResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         try {
 
             // Cast body of object to Custom HttpResponse
-            HttpResponse httpResponse= (HttpResponse) body;
+            CandidateResponseDTO.HttpResponse httpResponse= (CandidateResponseDTO.HttpResponse) body;
 
             // Retrieve audit data from request context for injection into the response body
             Long endTime = System.currentTimeMillis();

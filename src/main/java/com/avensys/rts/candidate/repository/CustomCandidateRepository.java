@@ -8,55 +8,55 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.avensys.rts.candidate.entity.CandidateNewEntity;
+import com.avensys.rts.candidate.entity.CandidateEntity;
 
 public interface CustomCandidateRepository {
 	
 	// Not used
-	  Page<CandidateNewEntity>findAllByOrderBy(Integer userId, Boolean isDeleted,
+	  Page<CandidateEntity>findAllByOrderBy(Integer userId, Boolean isDeleted,
 	  Boolean isDraft,Boolean isActive,Pageable pageable);
 	  
-	  Page<CandidateNewEntity>findAllByOrderByString(Integer userId, Boolean
+	  Page<CandidateEntity>findAllByOrderByString(Integer userId, Boolean
 	  isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
 	  
-	  Page<CandidateNewEntity>findAllByOrderByNumeric(Integer userId, Boolean
+	  Page<CandidateEntity>findAllByOrderByNumeric(Integer userId, Boolean
 	  isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable);
 	  
-	  Page<CandidateNewEntity>findAllByOrderByAndSearchString(Integer userId,
+	  Page<CandidateEntity>findAllByOrderByAndSearchString(Integer userId,
 	  Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
 	  searchFields, String searchTerm);
 	  
-	  Page<CandidateNewEntity>findAllByOrderByAndSearchNumeric(Integer userId,
+	  Page<CandidateEntity>findAllByOrderByAndSearchNumeric(Integer userId,
 	  Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 	  searchFields, String searchTerm);
 
 	  // With user groups
-	  Page<CandidateNewEntity>findAllByOrderByStringWithUserGroups(Set<Long> userGroupIds, Boolean
+	  Page<CandidateEntity>findAllByOrderByStringWithUserGroups(Set<Long> userGroupIds, Boolean
 			  isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
 
-	Page<CandidateNewEntity>findAllByOrderByNumericWithUserGroups(Set<Long> userGroupIds, Boolean
+	Page<CandidateEntity>findAllByOrderByNumericWithUserGroups(Set<Long> userGroupIds, Boolean
 			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
 
-	Page<CandidateNewEntity>findAllByOrderByAndSearchStringWithUserGroups(Set<Long> userGroupIds,
+	Page<CandidateEntity>findAllByOrderByAndSearchStringWithUserGroups(Set<Long> userGroupIds,
 			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
 			searchFields, String searchTerm);
 
-	Page<CandidateNewEntity>findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
+	Page<CandidateEntity>findAllByOrderByAndSearchNumericWithUserGroups(Set<Long> userGroupIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 			searchFields, String searchTerm);
 
 	// Check only user id
-	Page<CandidateNewEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
+	Page<CandidateEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
 			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
 
-	Page<CandidateNewEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
+	Page<CandidateEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
 			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
 
-	Page<CandidateNewEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
+	Page<CandidateEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
 			searchFields, String searchTerm);
 
-	Page<CandidateNewEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
+	Page<CandidateEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 			searchFields, String searchTerm);
 }

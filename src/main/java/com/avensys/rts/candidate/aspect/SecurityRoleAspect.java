@@ -3,6 +3,7 @@ package com.avensys.rts.candidate.aspect;
 import java.util.Arrays;
 import java.util.List;
 
+import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,6 @@ import com.avensys.rts.candidate.annotation.RequiresAllRoles;
 import com.avensys.rts.candidate.annotation.RequiresAnyRole;
 import com.avensys.rts.candidate.enums.Role;
 import com.avensys.rts.candidate.exception.PermissionDeniedException;
-import com.avensys.rts.candidate.payloadresponse.HttpResponse;
-import com.avensys.rts.candidate.payloadresponse.UserResponseDTO;
 import com.avensys.rts.candidate.util.JwtUtil;
 import com.avensys.rts.candidate.util.MappingUtil;
 
@@ -71,8 +70,8 @@ public class SecurityRoleAspect {
 
     private Integer getUserId() {
         String email = JwtUtil.getEmailFromContext();
-        HttpResponse userResponse = userAPIClient.getUserByEmail(email);
-        UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+        CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserByEmail(email);
+        CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
         return userData.getId();
     }
 
