@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 
-@FeignClient(name = "languages-service", url = "http://localhost:9800", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "languages-service", url = "${api.language.url}", configuration = JwtTokenInterceptor.class)
 
 public interface LanguagesAPIClient {
 	@DeleteMapping("/languages/entity/{entityType}/{entityId}")

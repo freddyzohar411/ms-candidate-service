@@ -13,7 +13,7 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
  * This class is an interface to interact with document microservice
  */
 @Configuration
-@FeignClient(name = "document-service", url = "http://localhost:8500", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
     @DeleteMapping("/documents/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteDocumentsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);

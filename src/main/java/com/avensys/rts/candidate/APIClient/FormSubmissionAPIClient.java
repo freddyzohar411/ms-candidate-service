@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
 
-@FeignClient(name = "form-service", url = "http://localhost:9400", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "form-service", url = "${api.form-submission.url}", configuration = JwtTokenInterceptor.class)
 public interface FormSubmissionAPIClient {
 	@PostMapping("/form-submissions")
 	CandidateResponseDTO.HttpResponse addFormSubmission(@RequestBody FormSubmissionsRequestDTO formSubmissionsRequestDTO);

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 
 @Configuration
-@FeignClient(name = "work-experience-service", url = "http://localhost:9500", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "work-experience-service", url = "${api.work-experience.url}", configuration = JwtTokenInterceptor.class)
 public interface WorkExperienceAPIClient {
 	@DeleteMapping("/work-experience/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteWorkExperienceByEntityTypeAndEntityId(@PathVariable String entityType,
