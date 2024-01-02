@@ -10,7 +10,7 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 @FeignClient(name = "languages-service", url = "${api.language.url}", configuration = JwtTokenInterceptor.class)
 
 public interface LanguagesAPIClient {
-	@DeleteMapping("/languages/entity/{entityType}/{entityId}")
+	@DeleteMapping("/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteLanguagesByEntityTypeAndEntityId(@PathVariable String entityType,
 			@PathVariable Integer entityId);
 }

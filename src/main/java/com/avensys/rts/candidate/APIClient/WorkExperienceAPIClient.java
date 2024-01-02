@@ -11,7 +11,7 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 @Configuration
 @FeignClient(name = "work-experience-service", url = "${api.work-experience.url}", configuration = JwtTokenInterceptor.class)
 public interface WorkExperienceAPIClient {
-	@DeleteMapping("/work-experience/entity/{entityType}/{entityId}")
+	@DeleteMapping("/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteWorkExperienceByEntityTypeAndEntityId(@PathVariable String entityType,
 			@PathVariable Integer entityId);
 }

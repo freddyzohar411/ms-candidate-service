@@ -12,7 +12,7 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 @FeignClient(name = "education-details-service", url = "${api.education-details.url}", configuration = JwtTokenInterceptor.class)
 public interface EducationDetailsAPIClient {
 
-	@DeleteMapping("/education-details/entity/{entityType}/{entityId}")
+	@DeleteMapping("/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteEducationDetailsByEntityTypeAndEntityId(@PathVariable String entityType,
 			@PathVariable Integer entityId);
 }

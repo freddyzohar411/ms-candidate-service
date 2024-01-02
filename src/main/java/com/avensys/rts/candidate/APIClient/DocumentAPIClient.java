@@ -15,6 +15,6 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 @Configuration
 @FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
-    @DeleteMapping("/documents/entity/{entityType}/{entityId}")
+    @DeleteMapping("/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteDocumentsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);
 }

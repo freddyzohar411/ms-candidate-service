@@ -14,16 +14,16 @@ import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
 
 @FeignClient(name = "form-service", url = "${api.form-submission.url}", configuration = JwtTokenInterceptor.class)
 public interface FormSubmissionAPIClient {
-	@PostMapping("/form-submissions")
+	@PostMapping("")
 	CandidateResponseDTO.HttpResponse addFormSubmission(@RequestBody FormSubmissionsRequestDTO formSubmissionsRequestDTO);
 	
-	@GetMapping("/form-submissions/{formSubmissionId}")
+	@GetMapping("/{formSubmissionId}")
 	CandidateResponseDTO.HttpResponse getFormSubmission(@PathVariable int formSubmissionId);
 	
-	@PutMapping("/form-submissions/{formSubmissionId}")
+	@PutMapping("/{formSubmissionId}")
 	CandidateResponseDTO.HttpResponse updateFormSubmission(@PathVariable int formSubmissionId, @RequestBody FormSubmissionsRequestDTO formSubmissionsRequestDTO);
 
-	@DeleteMapping("/form-submissions/{formSubmissionId}")
+	@DeleteMapping("/{formSubmissionId}")
 	CandidateResponseDTO.HttpResponse deleteFormSubmission(@PathVariable int formSubmissionId);
 	
 

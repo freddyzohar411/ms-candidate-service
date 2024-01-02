@@ -10,7 +10,7 @@ import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 @FeignClient(name = "certification-service", url = "${api.certification.url}", configuration = JwtTokenInterceptor.class)
 
 public interface CertificationAPIClient {
-	@DeleteMapping("/certifications/entity/{entityType}/{entityId}")
+	@DeleteMapping("/entity/{entityType}/{entityId}")
 	CandidateResponseDTO.HttpResponse deleteCertificationsByEntityTypeAndEntityId(@PathVariable String entityType,
 			@PathVariable Integer entityId);
 }
