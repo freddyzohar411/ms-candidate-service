@@ -5,6 +5,7 @@ import java.util.List;
 import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.enums.Permission;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,6 +193,16 @@ public class CandidateController {
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
+	@GetMapping("/{candidateId}/data")
+	public ResponseEntity<Object> getCandidateByIdData(@PathVariable Integer candidateId) {
+		LOG.info("Account get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateByIdData(candidateId),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+
 //
 //	@GetMapping("/search")
 //	public ResponseEntity<Object>searchCandidate(@RequestParam( value = "query",required = false)String query){
