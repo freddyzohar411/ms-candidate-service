@@ -59,7 +59,7 @@ public class CandidateController {
 	 * @return
 	 */
 	@RequiresAllPermissions({ Permission.CANDIDATE_WRITE })
-	@PostMapping("")
+	@PostMapping("/add")
 	public ResponseEntity<Object> addCandidate(@Valid @ModelAttribute CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate create: Controller");
 		System.out.println("CandidateNewController: " + candidateRequestDTO);
