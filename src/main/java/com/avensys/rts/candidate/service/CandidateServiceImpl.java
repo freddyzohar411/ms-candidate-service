@@ -290,6 +290,25 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateEntityToCandidateResopnseDTO(candidateEntity);
 	}
 
+	@Override
+	public CandidateListingDataDTO getCandidateByIdData(Integer candidateId) {
+		return candidateEntityToCandidateNewListingDataDTO(candidateRepository.findByIdAndDeleted(candidateId, false, true).orElseThrow(
+				() -> new RuntimeException("Candidate not found")
+		));
+	}
+
+	private CandidateListingDataDTO candidateEntityToCandidateNewListingDataDTO(CandidateEntity candidateEntity) {
+		CandidateListingDataDTO candidateListingDataDTO = new CandidateListingDataDTO(candidateEntity);
+		// Get created by User data from user microservice
+		CandidateResponseDTO.HttpResponse createUserResponse = userAPIClient.getUserById(candidateEntity.getCreatedBy());
+		CandidateResponseDTO.UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		candidateListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
+		CandidateResponseDTO.HttpResponse updateUserResponse = userAPIClient.getUserById(candidateEntity.getUpdatedBy());
+		CandidateResponseDTO.UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		candidateListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
+		return candidateListingDataDTO;
+	}
+	
 	// Candidate Listing page with search
 //	@Override
 //	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,

@@ -6,6 +6,7 @@ import java.util.Set;
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 
@@ -34,5 +35,6 @@ public interface CandidateService {
 
 	CandidateResponseDTO completeCandidateCreate(Integer id);
 
+	CandidateListingDataDTO getCandidateByIdData(Integer candidateId);
 
 }
