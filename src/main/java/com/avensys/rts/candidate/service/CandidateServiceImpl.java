@@ -1,5 +1,6 @@
 package com.avensys.rts.candidate.service;
 
+import java.io.IOException;
 import java.util.*;
 
 //import java.util.ArrayList;
@@ -9,6 +10,10 @@ import com.avensys.rts.candidate.APIClient.*;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.util.StringUtil;
 import com.avensys.rts.candidate.util.UserUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -295,6 +300,85 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateEntityToCandidateNewListingDataDTO(candidateRepository.findByIdAndDeleted(candidateId, false, true).orElseThrow(
 				() -> new RuntimeException("Candidate not found")
 		));
+	}
+
+	@Override
+	public HashMap<String, Object> getCandidateByIdDataAll(Integer candidateId) {
+		HashMap<String, Object> candidateData = new HashMap<>();
+		// Get basic information from form submission
+		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(candidateId, false, true).orElseThrow(
+				() -> new RuntimeException("Candidate not found")
+		);
+		candidateData.put("basicInfo", candidateEntity.getCandidateSubmissionData());
+		// Get work experience from work experience microservice
+		CandidateResponseDTO.HttpResponse workExperienceResponse = workExperienceAPIClient.getWorkExperienceByEntityTypeAndEntityId("candidate_work_experience", candidateId);
+
+		// Get the form submission data from work experience microservice
+		List<Object> workExperienceSubmissionData = MappingUtil.mapClientBodyToClass(workExperienceResponse.getData(), List.class);
+		List<JsonNode> workExperienceSubmissionDataJsonNodeList = MappingUtil.convertObjectToListOfJsonNode(workExperienceSubmissionData, "submissionData");
+		candidateData.put("workExperiences", workExperienceSubmissionDataJsonNodeList);
+
+		// Get education details from education details microservice
+		List<Object> educationDetailsSubmissionData = MappingUtil.mapClientBodyToClass(educationDetailsAPIClient.getEducationDetailsByEntityTypeAndEntityId("candidate_education_details", candidateId).getData(), List.class);
+		List<JsonNode> educationDetailsSubmissionDataJsonNodeList = MappingUtil.convertObjectToListOfJsonNode(educationDetailsSubmissionData, "submissionData");
+		candidateData.put("educationDetails", educationDetailsSubmissionDataJsonNodeList);
+
+		// Get certification from certification microservice
+		List<Object> certificationSubmissionData = MappingUtil.mapClientBodyToClass(certificationAPIClient.getCertificationsByEntityTypeAndEntityId("candidate_certification", candidateId).getData(), List.class);
+		List<JsonNode> certificationSubmissionDataJsonNodeList = MappingUtil.convertObjectToListOfJsonNode(certificationSubmissionData, "submissionData");
+		candidateData.put("certification", certificationSubmissionDataJsonNodeList);
+
+		// Get languages from languages microservice
+		List<Object> languagesSubmissionData = MappingUtil.mapClientBodyToClass(languagesAPIClient.getLanguagesByEntityTypeAndEntityId("candidate_languages", candidateId).getData(), List.class);
+		List<JsonNode> languagesSubmissionDataJsonNodeList = MappingUtil.convertObjectToListOfJsonNode(languagesSubmissionData, "submissionData");
+		candidateData.put("languages", languagesSubmissionDataJsonNodeList);
+
+		// Get employer details from employer details microservice
+		List<Object> employerDetailsSubmissionData = MappingUtil.mapClientBodyToClass(employerDetailsAPIClient.getEmployerDetailsByEntityTypeAndEntityId("candidate_employer_details", candidateId).getData(), List.class);
+		List<JsonNode> employerDetailsSubmissionDataJsonNodeList = MappingUtil.convertObjectToListOfJsonNode(employerDetailsSubmissionData, "submissionData");
+		candidateData.put("employerDetails", employerDetailsSubmissionDataJsonNodeList);
+
+
+		return candidateData;
+	}
+
+	@Override
+	public HashMap<String, List<HashMap<String, String>>> getAllCandidatesFieldsAll() {
+		HashMap<String, List<HashMap<String, String>>> allFields = new HashMap<>();
+		// Get Basic Info Fields
+//		getFormFieldNameList
+		CandidateResponseDTO.HttpResponse candidateBasicInfo = formSubmissionAPIClient.getFormFieldNameList("candidate_basic_info");
+		List<HashMap<String, String>> candidateBasicInfoFields = MappingUtil.mapClientBodyToClass(candidateBasicInfo.getData(), List.class);
+//		List<String> candidateBasicInfoFieldsList = List.of("workExperiences", "educationDetails", "certification", "languages", "employerDetails");
+//		// Put into candidateBasicInfoFields
+//		candidateBasicInfoFieldsList.forEach(field -> {
+//			HashMap<String, String> fieldMap = new HashMap<>();
+//			fieldMap.put("label", StringUtil.convertCamelCaseToTitleCase2(field));
+//			fieldMap.put("value", field);
+//			candidateBasicInfoFields.add(fieldMap);
+//		});
+		allFields.put("basicInfo", candidateBasicInfoFields);
+		// Get Work Experience Fields
+		CandidateResponseDTO.HttpResponse workExperience = formSubmissionAPIClient.getFormFieldNameList("candidate_work_experience");
+		List<HashMap<String, String>> workExperienceFields = MappingUtil.mapClientBodyToClass(workExperience.getData(), List.class);
+		allFields.put("workExperiences", workExperienceFields);
+		// Get Education Details Fields
+		CandidateResponseDTO.HttpResponse educationDetails = formSubmissionAPIClient.getFormFieldNameList("candidate_education_details");
+		List<HashMap<String, String>> educationDetailsFields = MappingUtil.mapClientBodyToClass(educationDetails.getData(), List.class);
+		allFields.put("educationDetails", educationDetailsFields);
+		// Get Certification Fields
+		CandidateResponseDTO.HttpResponse certification = formSubmissionAPIClient.getFormFieldNameList("candidate_certification");
+		List<HashMap<String, String>> certificationFields = MappingUtil.mapClientBodyToClass(certification.getData(), List.class);
+		allFields.put("certification", certificationFields);
+		// Get Languages Fields
+		CandidateResponseDTO.HttpResponse languages = formSubmissionAPIClient.getFormFieldNameList("candidate_languages");
+		List<HashMap<String, String>> languagesFields = MappingUtil.mapClientBodyToClass(languages.getData(), List.class);
+		allFields.put("languages", languagesFields);
+		// Get Employer Details Fields
+		CandidateResponseDTO.HttpResponse employerDetails = formSubmissionAPIClient.getFormFieldNameList("candidate_employer_details");
+		List<HashMap<String, String>> employerDetailsFields = MappingUtil.mapClientBodyToClass(employerDetails.getData(), List.class);
+		allFields.put("employerDetails", employerDetailsFields);
+		return allFields;
 	}
 
 	private CandidateListingDataDTO candidateEntityToCandidateNewListingDataDTO(CandidateEntity candidateEntity) {

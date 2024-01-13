@@ -5,6 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 public class MappingUtil {
 	/**
 	 * This method is used to convert Object to Class
@@ -47,6 +52,31 @@ public class MappingUtil {
             throw new RuntimeException(e);
         }
     }
+
+	public static List<JsonNode> convertObjectToListOfJsonNode(List<Object> objList, String key) {
+		List<JsonNode> JsonNodeList = objList.stream()
+				.map(obj -> {
+					if (obj instanceof Map) {
+						// Assuming workExperience is a Map
+						Object submissionData = ((Map<?, ?>) obj).get(key);
+						// Check if submissionData is a String
+						if (submissionData instanceof String) {
+							try {
+								ObjectMapper objectMapper = new ObjectMapper();
+								return objectMapper.readTree((String) submissionData);
+							} catch (IOException e) {
+								// Handle the exception, e.g., log an error
+								e.printStackTrace();
+								return null; // or throw an exception, or handle it according to your requirements
+							}
+						}
+					}
+					return null; // or throw an exception, or handle it according to your requirements
+				})
+				.filter(Objects::nonNull) // Remove null entries
+				.toList();
+		return JsonNodeList;
+	}
 	
 
 }

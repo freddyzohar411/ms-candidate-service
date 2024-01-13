@@ -202,6 +202,21 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@GetMapping("/fields/all")
+	public ResponseEntity<Object> getAllCandidatesFieldsAll() {
+		LOG.info("Candidate get all fields: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFieldsAll(), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/{candidateId}/data/all")
+	public ResponseEntity<Object> getCandidateByIdDataAll(@PathVariable Integer candidateId) {
+		LOG.info("Account get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateByIdDataAll(candidateId),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 
 //
 //	@GetMapping("/search")

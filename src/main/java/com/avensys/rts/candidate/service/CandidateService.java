@@ -1,5 +1,6 @@
 package com.avensys.rts.candidate.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -36,5 +37,9 @@ public interface CandidateService {
 	CandidateResponseDTO completeCandidateCreate(Integer id);
 
 	CandidateListingDataDTO getCandidateByIdData(Integer candidateId);
+
+	HashMap<String, Object> getCandidateByIdDataAll(Integer candidateId);
+
+	HashMap<String, List<HashMap<String, String>>> getAllCandidatesFieldsAll();
 
 }
