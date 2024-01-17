@@ -194,10 +194,40 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	/**
+	 * Get candidate data by id
+	 * @param candidateId
+	 * @return
+	 */
 	@GetMapping("/{candidateId}/data")
 	public ResponseEntity<Object> getCandidateByIdData(@PathVariable Integer candidateId) {
 		LOG.info("Account get by id data: Controller");
 		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateByIdData(candidateId),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get all candidate field for all forms related to candidates
+	 * including all related microservices
+	 * @return
+	 */
+	@GetMapping("/fields/all")
+	public ResponseEntity<Object> getAllCandidatesFieldsAll() {
+		LOG.info("Candidate get all fields: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesFieldsAll(), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get candidate data by id including all related microservices
+	 * @param candidateId
+	 * @return
+	 */
+	@GetMapping("/{candidateId}/data/all")
+	public ResponseEntity<Object> getCandidateByIdDataAll(@PathVariable Integer candidateId) {
+		LOG.info("Account get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateByIdDataAll(candidateId),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}

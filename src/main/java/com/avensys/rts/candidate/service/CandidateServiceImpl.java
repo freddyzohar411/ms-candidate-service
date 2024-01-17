@@ -1,5 +1,6 @@
 package com.avensys.rts.candidate.service;
 
+import java.io.IOException;
 import java.util.*;
 
 //import java.util.ArrayList;
@@ -9,6 +10,10 @@ import com.avensys.rts.candidate.APIClient.*;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.util.StringUtil;
 import com.avensys.rts.candidate.util.UserUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +74,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = candidateNewRequestDTOToFormSubmissionRequestDTO(
 				candidateEntity, candidateRequestDTO);
-		CandidateResponseDTO.HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
+		CandidateResponseDTO.HttpResponse formSubmissionResponse = formSubmissionAPIClient
+				.addFormSubmission(formSubmissionsRequestDTO);
 		FormSubmissionsResponseDTO formSubmissionData = MappingUtil
 				.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
@@ -90,18 +96,19 @@ public class CandidateServiceImpl implements CandidateService {
 
 		// Get created by User data from user microservice
 		CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserById(candidateEntity.getCreatedBy());
-		CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(),
+				CandidateResponseDTO.UserResponseDTO.class);
 		candidateResponseDTO.setCreatedBy(userData.getFirstName() + " " + userData.getLastName());
 
 		// Get updated by user data from user microservice
 		if (candidateEntity.getUpdatedBy() == candidateEntity.getCreatedBy()) {
 			candidateResponseDTO.setUpdatedBy(userData.getFirstName() + " " + userData.getLastName());
 		} else {
-			CandidateResponseDTO.HttpResponse updatedByUserResponse = userAPIClient.getUserById(candidateEntity.getUpdatedBy());
-			CandidateResponseDTO.UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
-					CandidateResponseDTO.UserResponseDTO.class);
-			candidateResponseDTO
-					.setUpdatedBy(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			CandidateResponseDTO.HttpResponse updatedByUserResponse = userAPIClient
+					.getUserById(candidateEntity.getUpdatedBy());
+			CandidateResponseDTO.UserResponseDTO updatedByUserData = MappingUtil
+					.mapClientBodyToClass(updatedByUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+			candidateResponseDTO.setUpdatedBy(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
 		}
 		// Get form submission data
 		CandidateResponseDTO.HttpResponse formSubmissionResponse = formSubmissionAPIClient
@@ -114,8 +121,7 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateResponseDTO;
 	}
 
-	private CandidateEntity candidateNewRequestDTOToCandidateNewEntity(
-			CandidateRequestDTO candidateRequestDTO) {
+	private CandidateEntity candidateNewRequestDTOToCandidateNewEntity(CandidateRequestDTO candidateRequestDTO) {
 		System.out.println("candidateNewRequestDTOToCandidateNewEntity: " + candidateRequestDTO);
 		CandidateEntity candidateEntity = new CandidateEntity();
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
@@ -132,12 +138,13 @@ public class CandidateServiceImpl implements CandidateService {
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
 		CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserByEmail(email);
-		CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(),
+				CandidateResponseDTO.UserResponseDTO.class);
 		return userData.getId();
 	}
 
-	private FormSubmissionsRequestDTO candidateNewRequestDTOToFormSubmissionRequestDTO(
-			CandidateEntity candidateEntity, CandidateRequestDTO candidateRequestDTO) {
+	private FormSubmissionsRequestDTO candidateNewRequestDTOToFormSubmissionRequestDTO(CandidateEntity candidateEntity,
+			CandidateRequestDTO candidateRequestDTO) {
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
 		formSubmissionsRequestDTO.setUserId(getUserId());
 		formSubmissionsRequestDTO.setFormId(candidateRequestDTO.getFormId());
@@ -163,7 +170,7 @@ public class CandidateServiceImpl implements CandidateService {
 		System.out.println(candidateRequestDTO);
 
 		// Get candidate data from candidate microservice
-		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false,true)
+		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 		// Update candidate data
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
@@ -188,7 +195,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public Set<FieldInformation> getAllCandidatesFields() {
-		List<CandidateEntity> candidateEntities = candidateRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
+		List<CandidateEntity> candidateEntities = candidateRepository
+				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
 		if (candidateEntities.isEmpty()) {
 			return null;
 		}
@@ -218,21 +226,27 @@ public class CandidateServiceImpl implements CandidateService {
 	@Transactional
 	public void deleteDraftCandidate(Integer id) {
 		// Get candidate which is in draft state.
-		CandidateEntity candidateEntity = candidateRepository.findByIdAndDraft(id, true,true)
+		CandidateEntity candidateEntity = candidateRepository.findByIdAndDraft(id, true, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 
 		// Delete all the document service related to candidate
-		CandidateResponseDTO.HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("candidate_documents", id);
+		CandidateResponseDTO.HttpResponse documentResponse = documentAPIClient
+				.deleteDocumentsByEntityTypeAndEntityId("candidate_documents", id);
 		// Delete all the work experience
-		CandidateResponseDTO.HttpResponse workExperienceResponse = workExperienceAPIClient.deleteWorkExperienceByEntityTypeAndEntityId("candidate_work_experience", id);
+		CandidateResponseDTO.HttpResponse workExperienceResponse = workExperienceAPIClient
+				.deleteWorkExperienceByEntityTypeAndEntityId("candidate_work_experience", id);
 		// Delete all the education
-		CandidateResponseDTO.HttpResponse educationResponse = educationDetailsAPIClient.deleteEducationDetailsByEntityTypeAndEntityId("candidate_education_details", id);
+		CandidateResponseDTO.HttpResponse educationResponse = educationDetailsAPIClient
+				.deleteEducationDetailsByEntityTypeAndEntityId("candidate_education_details", id);
 		// Delete all the certification
-		CandidateResponseDTO.HttpResponse certificationResponse = certificationAPIClient.deleteCertificationsByEntityTypeAndEntityId("candidate_certification", id);
+		CandidateResponseDTO.HttpResponse certificationResponse = certificationAPIClient
+				.deleteCertificationsByEntityTypeAndEntityId("candidate_certification", id);
 		// Delete all the languages
-		CandidateResponseDTO.HttpResponse languagesResponse = languagesAPIClient.deleteLanguagesByEntityTypeAndEntityId("candidate_languages", id);
+		CandidateResponseDTO.HttpResponse languagesResponse = languagesAPIClient
+				.deleteLanguagesByEntityTypeAndEntityId("candidate_languages", id);
 		// Delete all the employer details
-		CandidateResponseDTO.HttpResponse employerDetailsResponse = employerDetailsAPIClient.deleteEmployerDetailsByEntityTypeAndEntityId("candidate_employer_details", id);
+		CandidateResponseDTO.HttpResponse employerDetailsResponse = employerDetailsAPIClient
+				.deleteEmployerDetailsByEntityTypeAndEntityId("candidate_employer_details", id);
 
 		// Delete all candidate form submission
 		if (candidateEntity.getFormSubmissionId() != null) {
@@ -248,8 +262,8 @@ public class CandidateServiceImpl implements CandidateService {
 	// Get candidate if draft
 	@Override
 	public CandidateResponseDTO getCandidateIfDraft() {
-		Optional<CandidateEntity> candidateNewEntity = candidateRepository
-				.findByUserAndDraftAndDeleted(getUserId(), true, false, true);
+		Optional<CandidateEntity> candidateNewEntity = candidateRepository.findByUserAndDraftAndDeleted(getUserId(),
+				true, false, true);
 		if (candidateNewEntity.isPresent()) {
 			return candidateEntityToCandidateResopnseDTO(candidateNewEntity.get());
 		}
@@ -272,7 +286,7 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public List<CandidateEntity> getAllCandidatesByUser(boolean draft, boolean deleted) {
 		List<CandidateEntity> CandidateEntities = candidateRepository.findAllByUserAndDraftAndDeleted(getUserId(),
-				draft, deleted,true);
+				draft, deleted, true);
 		return CandidateEntities;
 	}
 
@@ -290,25 +304,148 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateEntityToCandidateResopnseDTO(candidateEntity);
 	}
 
+	/**
+	 * Get candidate data, only basic info
+	 * @param candidateId
+	 * @return
+	 */
 	@Override
 	public CandidateListingDataDTO getCandidateByIdData(Integer candidateId) {
-		return candidateEntityToCandidateNewListingDataDTO(candidateRepository.findByIdAndDeleted(candidateId, false, true).orElseThrow(
-				() -> new RuntimeException("Candidate not found")
-		));
+		return candidateEntityToCandidateNewListingDataDTO(
+				candidateRepository.findByIdAndDeleted(candidateId, false, true)
+						.orElseThrow(() -> new RuntimeException("Candidate not found")));
+	}
+
+	/**
+	 * Get all candidate data including all related microservices
+	 * @param candidateId
+	 * @return
+	 */
+	@Override
+	public HashMap<String, Object> getCandidateByIdDataAll(Integer candidateId) {
+		HashMap<String, Object> candidateData = new HashMap<>();
+		// Get basic information from form submission
+		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(candidateId, false, true)
+				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+		candidateData.put("basicInfo", candidateEntity.getCandidateSubmissionData());
+
+		// Get work experience from work experience microservice
+		CandidateResponseDTO.HttpResponse workExperienceResponse = workExperienceAPIClient
+				.getWorkExperienceByEntityTypeAndEntityId("candidate_work_experience", candidateId);
+
+		// Get the form submission data from work experience microservice
+		List<Object> workExperienceSubmissionData = MappingUtil.mapClientBodyToClass(workExperienceResponse.getData(),
+				List.class);
+		List<JsonNode> workExperienceSubmissionDataJsonNodeList = MappingUtil
+				.convertObjectToListOfJsonNode(workExperienceSubmissionData, "submissionData");
+		candidateData.put("workExperiences", workExperienceSubmissionDataJsonNodeList);
+
+		// Get education details from education details microservice
+		List<Object> educationDetailsSubmissionData = MappingUtil.mapClientBodyToClass(educationDetailsAPIClient
+				.getEducationDetailsByEntityTypeAndEntityId("candidate_education_details", candidateId).getData(),
+				List.class);
+		List<JsonNode> educationDetailsSubmissionDataJsonNodeList = MappingUtil
+				.convertObjectToListOfJsonNode(educationDetailsSubmissionData, "submissionData");
+		candidateData.put("educationDetails", educationDetailsSubmissionDataJsonNodeList);
+
+		// Get certification from certification microservice
+		List<Object> certificationSubmissionData = MappingUtil.mapClientBodyToClass(certificationAPIClient
+				.getCertificationsByEntityTypeAndEntityId("candidate_certification", candidateId).getData(),
+				List.class);
+		List<JsonNode> certificationSubmissionDataJsonNodeList = MappingUtil
+				.convertObjectToListOfJsonNode(certificationSubmissionData, "submissionData");
+		candidateData.put("certification", certificationSubmissionDataJsonNodeList);
+
+		// Get languages from languages microservice
+		List<Object> languagesSubmissionData = MappingUtil.mapClientBodyToClass(
+				languagesAPIClient.getLanguagesByEntityTypeAndEntityId("candidate_languages", candidateId).getData(),
+				List.class);
+		List<JsonNode> languagesSubmissionDataJsonNodeList = MappingUtil
+				.convertObjectToListOfJsonNode(languagesSubmissionData, "submissionData");
+		candidateData.put("languages", languagesSubmissionDataJsonNodeList);
+
+		// Get employer details from employer details microservice
+		List<Object> employerDetailsSubmissionData = MappingUtil.mapClientBodyToClass(
+				employerDetailsAPIClient
+						.getEmployerDetailsByEntityTypeAndEntityId("candidate_employer_details", candidateId).getData(),
+				List.class);
+		List<JsonNode> employerDetailsSubmissionDataJsonNodeList = MappingUtil
+				.convertObjectToListOfJsonNode(employerDetailsSubmissionData, "submissionData");
+		candidateData.put("employerDetails", employerDetailsSubmissionDataJsonNodeList);
+
+		return candidateData;
+	}
+
+	/**
+	 * Get all the fields for all the forms in the candidate service
+	 * including all related microservices
+	 * @return
+	 */
+	@Override
+	public HashMap<String, List<HashMap<String, String>>> getAllCandidatesFieldsAll() {
+		HashMap<String, List<HashMap<String, String>>> allFields = new HashMap<>();
+
+		// Get Basic Info Fields
+		CandidateResponseDTO.HttpResponse candidateBasicInfo = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_basic_info");
+		List<HashMap<String, String>> candidateBasicInfoFields = MappingUtil
+				.mapClientBodyToClass(candidateBasicInfo.getData(), List.class);
+		allFields.put("basicInfo", candidateBasicInfoFields);
+
+		// Get Work Experience Fields
+		CandidateResponseDTO.HttpResponse workExperience = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_work_experience");
+		List<HashMap<String, String>> workExperienceFields = MappingUtil.mapClientBodyToClass(workExperience.getData(),
+				List.class);
+		allFields.put("workExperiences", workExperienceFields);
+
+		// Get Education Details Fields
+		CandidateResponseDTO.HttpResponse educationDetails = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_education_details");
+		List<HashMap<String, String>> educationDetailsFields = MappingUtil
+				.mapClientBodyToClass(educationDetails.getData(), List.class);
+		allFields.put("educationDetails", educationDetailsFields);
+
+		// Get Certification Fields
+		CandidateResponseDTO.HttpResponse certification = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_certification");
+		List<HashMap<String, String>> certificationFields = MappingUtil.mapClientBodyToClass(certification.getData(),
+				List.class);
+		allFields.put("certification", certificationFields);
+
+		// Get Languages Fields
+		CandidateResponseDTO.HttpResponse languages = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_languages");
+		List<HashMap<String, String>> languagesFields = MappingUtil.mapClientBodyToClass(languages.getData(),
+				List.class);
+		allFields.put("languages", languagesFields);
+
+		// Get Employer Details Fields
+		CandidateResponseDTO.HttpResponse employerDetails = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_employer_details");
+		List<HashMap<String, String>> employerDetailsFields = MappingUtil
+				.mapClientBodyToClass(employerDetails.getData(), List.class);
+		allFields.put("employerDetails", employerDetailsFields);
+
+		return allFields;
 	}
 
 	private CandidateListingDataDTO candidateEntityToCandidateNewListingDataDTO(CandidateEntity candidateEntity) {
 		CandidateListingDataDTO candidateListingDataDTO = new CandidateListingDataDTO(candidateEntity);
 		// Get created by User data from user microservice
-		CandidateResponseDTO.HttpResponse createUserResponse = userAPIClient.getUserById(candidateEntity.getCreatedBy());
-		CandidateResponseDTO.UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		CandidateResponseDTO.HttpResponse createUserResponse = userAPIClient
+				.getUserById(candidateEntity.getCreatedBy());
+		CandidateResponseDTO.UserResponseDTO createUserData = MappingUtil
+				.mapClientBodyToClass(createUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
 		candidateListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
-		CandidateResponseDTO.HttpResponse updateUserResponse = userAPIClient.getUserById(candidateEntity.getUpdatedBy());
-		CandidateResponseDTO.UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+		CandidateResponseDTO.HttpResponse updateUserResponse = userAPIClient
+				.getUserById(candidateEntity.getUpdatedBy());
+		CandidateResponseDTO.UserResponseDTO updateUserData = MappingUtil
+				.mapClientBodyToClass(updateUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
 		candidateListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
 		return candidateListingDataDTO;
 	}
-	
+
 	// Candidate Listing page with search
 //	@Override
 //	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
@@ -347,14 +484,17 @@ public class CandidateServiceImpl implements CandidateService {
 			CandidateListingDataDTO candidateListingDataDTO = new CandidateListingDataDTO(candidateNewEntity);
 
 			// Get created by User data from user service
-			CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserById(candidateNewEntity.getCreatedBy());
-			CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
+			CandidateResponseDTO.HttpResponse userResponse = userAPIClient
+					.getUserById(candidateNewEntity.getCreatedBy());
+			CandidateResponseDTO.UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(),
+					CandidateResponseDTO.UserResponseDTO.class);
 			candidateListingDataDTO.setCreatedByName(userData.getFirstName() + " " + userData.getLastName());
 
 			// Get updated by User data from user service
-			CandidateResponseDTO.HttpResponse updatedByUserResponse = userAPIClient.getUserById(candidateNewEntity.getUpdatedBy());
-			CandidateResponseDTO.UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
-					CandidateResponseDTO.UserResponseDTO.class);
+			CandidateResponseDTO.HttpResponse updatedByUserResponse = userAPIClient
+					.getUserById(candidateNewEntity.getUpdatedBy());
+			CandidateResponseDTO.UserResponseDTO updatedByUserData = MappingUtil
+					.mapClientBodyToClass(updatedByUserResponse.getData(), CandidateResponseDTO.UserResponseDTO.class);
 			candidateListingDataDTO
 					.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
 			return candidateListingDataDTO;
@@ -404,11 +544,11 @@ public class CandidateServiceImpl implements CandidateService {
 		Page<CandidateEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, false, true,
-					pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(
+					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false, false, true,
-					pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(
+					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -428,17 +568,16 @@ public class CandidateServiceImpl implements CandidateService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<CandidateEntity> candidateEntitiesPage = null;
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, false,
-					true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(
+					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(), false, false,
-					true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(
+					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
 
-
-	//	@Override
+	// @Override
 //	public List<CandidateNewEntity> getAllCandidatesWithSearch(String query) {
 //		List<CandidateNewEntity>candidateEntities = candidateNewRepository.getAllCandidatesWithSearch(query, getUserId(), false, false);
 //		return candidateEntities;
