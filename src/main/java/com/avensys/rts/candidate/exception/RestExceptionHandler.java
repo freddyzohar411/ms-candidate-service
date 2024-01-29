@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityNotFoundException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -29,6 +30,11 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 		apiError.setMessage(ex.getLocalizedMessage());
 		ex.printStackTrace();
 		return buildResponseEntity(apiError);
+	}
+
+	@ExceptionHandler(value = ExpiredJwtException.class)
+	public ResponseEntity<Object> expiredJWTException(ExpiredJwtException ex) {
+		return new ResponseEntity<>(ex.getLocalizedMessage(), HttpStatus.FORBIDDEN);
 	}
 
 	@Override
