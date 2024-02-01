@@ -18,8 +18,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	private EntityManager entityManager;
 
 	@Override
-	public Page<CandidateEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable) {
+	public Page<CandidateEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
+			Pageable pageable) {
 		String sortBy = pageable.getSort().get().findFirst().get().getProperty();
 		// Determine if sortBy is a regular column or a JSONB column
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -608,17 +608,25 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
@@ -626,14 +634,18 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
+				userCondition);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
 		// Create and return a Page object
@@ -660,9 +672,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -670,7 +688,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
@@ -678,14 +698,18 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		List<CandidateEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
+				userCondition);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
 		// Create and return a Page object
@@ -732,17 +756,25 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			searchConditions.delete(0, 4);
 		}
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -752,7 +784,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
 				searchConditions.toString());
 
 		// Create and execute the count query
@@ -760,7 +792,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -808,17 +842,25 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			searchConditions.delete(0, 4);
 		}
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isDraft", isDraft);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -828,15 +870,17 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
+				userCondition, searchConditions.toString());
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 

@@ -26,9 +26,9 @@ public interface CandidateService {
 	
 	void softDeleteCandidate(Integer id);
 	
-	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection);
+	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection, Boolean getAll);
 	
-	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields);
+	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean getAll);
 	
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 	

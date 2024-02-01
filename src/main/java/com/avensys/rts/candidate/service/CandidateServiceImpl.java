@@ -530,7 +530,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection) {
+			String sortDirection, Boolean getAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -543,19 +543,23 @@ public class CandidateServiceImpl implements CandidateService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<CandidateEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
+		List<Long> userIds = new ArrayList<>();
+		if (!getAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest);
+					userIds, false, false, true, pageRequest);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest);
+					userIds, false, false, true, pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -567,12 +571,16 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<CandidateEntity> candidateEntitiesPage = null;
+		List<Long> userIds = new ArrayList<>();
+		if (!getAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
+					userIds, false, false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
+					userIds, false, false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}

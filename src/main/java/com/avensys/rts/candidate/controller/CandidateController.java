@@ -183,19 +183,44 @@ public class CandidateController {
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, false),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
 							LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields),
+						searchFields, false),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+	@PostMapping("/listing/all")
+	public ResponseEntity<Object> getCandidateListingAll(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+		LOG.info("Candidate get all candidate listing: Controller");
+		Integer page = candidateListingRequestDTO.getPage();
+		Integer pageSize = candidateListingRequestDTO.getPageSize();
+		String sortBy = candidateListingRequestDTO.getSortBy();
+		String sortDirection = candidateListingRequestDTO.getSortDirection();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, true),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
+		}
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+						searchFields, true),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	/**
 	 * Get candidate data by id
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -208,8 +233,9 @@ public class CandidateController {
 	}
 
 	/**
-	 * Get all candidate field for all forms related to candidates
-	 * including all related microservices
+	 * Get all candidate field for all forms related to candidates including all
+	 * related microservices
+	 * 
 	 * @return
 	 */
 	@GetMapping("/fields/all")
@@ -221,6 +247,7 @@ public class CandidateController {
 
 	/**
 	 * Get candidate data by id including all related microservices
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -231,7 +258,6 @@ public class CandidateController {
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-
 
 //
 //	@GetMapping("/search")
