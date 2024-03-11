@@ -7,6 +7,7 @@ import java.util.*;
 //import java.util.List;
 
 import com.avensys.rts.candidate.APIClient.*;
+import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.util.StringUtil;
 import com.avensys.rts.candidate.util.UserUtil;
@@ -14,13 +15,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.context.MessageSource;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
@@ -46,6 +50,9 @@ public class CandidateServiceImpl implements CandidateService {
 	private UserUtil userUtil;
 
 	@Autowired
+	private MessageSource messageSource;
+
+	@Autowired
 	private EducationDetailsAPIClient educationDetailsAPIClient;
 	@Autowired
 	private EmployerDetailsAPIClient employerDetailsAPIClient;
@@ -69,6 +76,10 @@ public class CandidateServiceImpl implements CandidateService {
 	public CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate create : Service");
 		System.out.println("createCandidate" + candidateRequestDTO);
+		String email = getEmailFromRequest(candidateRequestDTO);
+		if (candidateRepository.existsByEmail(email)) {
+			throw new ServiceException(
+					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
 		System.out.println("Candidate ID: " + candidateEntity.getId());
 
@@ -584,6 +595,10 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
+
+	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {
+		return candidateRequestDTO.getEmail();
+	};
 
 	// @Override
 //	public List<CandidateNewEntity> getAllCandidatesWithSearch(String query) {
