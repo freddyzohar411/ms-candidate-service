@@ -427,6 +427,13 @@ public class CandidateServiceImpl implements CandidateService {
 				.mapClientBodyToClass(employerDetails.getData(), List.class);
 		allFields.put("employerDetails", employerDetailsFields);
 
+		// Get Documents Fields
+		CandidateResponseDTO.HttpResponse documents = formSubmissionAPIClient
+				.getFormFieldNameList("candidate_documents");
+		List<HashMap<String, String>> documentsFields = MappingUtil
+				.mapClientBodyToClass(documents.getData(), List.class);
+		allFields.put("documents", documentsFields);
+
 		return allFields;
 	}
 
