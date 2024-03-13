@@ -5,7 +5,10 @@ import java.util.List;
 import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.enums.Permission;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
+import com.avensys.rts.candidate.service.CandidateMappingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +49,8 @@ public class CandidateController {
 	private CandidateServiceImpl candidateNewService;
 	@Autowired
 	private MessageSource messageSource;
+	@Autowired
+	private CandidateMappingService candidateMappingService;
 
 	public CandidateController(CandidateServiceImpl candidateNewService, MessageSource messageSource) {
 		this.candidateNewService = candidateNewService;
@@ -258,6 +263,31 @@ public class CandidateController {
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
+	/**
+	 * Save Candidate Mapping
+	 *
+	 */
+	@PostMapping("/mapping/save")
+	public ResponseEntity<Object> saveCandidateMapping(@RequestBody CandidateMappingRequestDTO candidateListingDataDTO) {
+		LOG.info("Candidate save mapping: Controller");
+		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.saveCandidateMapping(candidateListingDataDTO);
+		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.CREATED,
+				messageSource.getMessage(MessageConstants.CANDIDATE_CREATED, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get Candidate Mapping
+	 *
+	 */
+	@GetMapping("/mapping/get")
+	public ResponseEntity<Object> getCandidateMapping() {
+		LOG.info("Candidate get mapping: Controller");
+		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.getCandidateMapping();
+		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 
 //
 //	@GetMapping("/search")
