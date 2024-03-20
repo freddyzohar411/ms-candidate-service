@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 @Entity(name = "candidate")
 @Table(name="candidate")
 @Data
@@ -70,5 +71,6 @@ public class CandidateEntity {
 
 	@Column(name = "created_by_user_groups_id", columnDefinition="TEXT")
 	private String createdByUserGroupsId;
+
 
 }
