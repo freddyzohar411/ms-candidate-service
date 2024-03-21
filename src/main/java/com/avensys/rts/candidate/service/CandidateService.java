@@ -42,4 +42,6 @@ public interface CandidateService {
 
 	HashMap<String, List<HashMap<String, String>>> getAllCandidatesFieldsAll();
 
+	HashMap<String, Object> updateCandidateEmbeddings(Integer candidateId);
+
 }

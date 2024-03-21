@@ -2,6 +2,7 @@ package com.avensys.rts.candidate.repository;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -11,6 +12,7 @@ import com.avensys.rts.candidate.entity.CandidateEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public class CustomCandidateRepositoryImpl implements CustomCandidateRepository {
 
@@ -886,6 +888,43 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Create and return a Page object
 		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	@Override
+	public void insertVector(Long candidateId, String columnName, List<Float> vector) {
+		// Convert your List<Float> to the format expected by the database for the vector type
+		String vectorString = vector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+
+		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		String sql = "INSERT INTO candidate (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as necessary
+
+		// Execute the native query with parameters, ensuring the correct format is applied
+		entityManager.createNativeQuery(sql)
+				.setParameter("id", candidateId)
+				.setParameter("columnName", columnName)
+				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+				.executeUpdate();
+	}
+
+	@Override
+	@Transactional
+	public void updateVector(Long candidateId, String columnName, List<Float> vector) {
+		// Convert your List<Float> to the format expected by the database for the vector type
+		String vectorString = vector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+
+		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		// Note the change to the SQL statement for updating instead of inserting
+		String sql = "UPDATE candidate SET " + columnName + " = CAST(:vectorText AS vector) WHERE id = :id";
+
+		// Execute the native query with parameters, ensuring the correct format is applied
+		entityManager.createNativeQuery(sql)
+				.setParameter("id", candidateId)
+				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+				.executeUpdate();
 	}
 
 }

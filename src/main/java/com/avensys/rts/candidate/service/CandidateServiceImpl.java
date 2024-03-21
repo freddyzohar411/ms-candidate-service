@@ -8,12 +8,15 @@ import java.util.*;
 
 import com.avensys.rts.candidate.APIClient.*;
 import com.avensys.rts.candidate.model.FieldInformation;
+import com.avensys.rts.candidate.payloadnewrequest.EmbeddingRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.*;
 import com.avensys.rts.candidate.util.StringUtil;
 import com.avensys.rts.candidate.util.UserUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +28,6 @@ import org.springframework.stereotype.Service;
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.FormSubmissionsResponseDTO;
 import com.avensys.rts.candidate.repository.CandidateRepository;
 import com.avensys.rts.candidate.util.JwtUtil;
 import com.avensys.rts.candidate.util.MappingUtil;
@@ -63,6 +62,8 @@ public class CandidateServiceImpl implements CandidateService {
 	private UserAPIClient userAPIClient;
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+	@Autowired
+	private EmbeddingAPIClient embeddingAPIClient;
 
 	@Override
 	@Transactional
@@ -306,6 +307,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get candidate data, only basic info
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -318,6 +320,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get all candidate data including all related microservices
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -377,8 +380,9 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	/**
-	 * Get all the fields for all the forms in the candidate service
-	 * including all related microservices
+	 * Get all the fields for all the forms in the candidate service including all
+	 * related microservices
+	 * 
 	 * @return
 	 */
 	@Override
@@ -430,11 +434,45 @@ public class CandidateServiceImpl implements CandidateService {
 		// Get Documents Fields
 		CandidateResponseDTO.HttpResponse documents = formSubmissionAPIClient
 				.getFormFieldNameList("candidate_documents");
-		List<HashMap<String, String>> documentsFields = MappingUtil
-				.mapClientBodyToClass(documents.getData(), List.class);
+		List<HashMap<String, String>> documentsFields = MappingUtil.mapClientBodyToClass(documents.getData(),
+				List.class);
 		allFields.put("documents", documentsFields);
 
 		return allFields;
+	}
+
+	@Override
+	public HashMap<String, Object> updateCandidateEmbeddings(Integer candidateId) {
+		HashMap<String, Object> candidateHashMapData = getCandidateByIdDataAll(candidateId);
+		// Convert it into a json string
+		String candidateDataJsonString = null;
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.enable(SerializationFeature.INDENT_OUTPUT);
+			candidateDataJsonString = mapper.writeValueAsString(candidateHashMapData);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		// Print out the JSON in formatted state
+		System.out.println("Candidate Data: " + candidateDataJsonString);
+
+		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+		embeddingRequestDTO.setText(candidateDataJsonString);
+
+		CandidateResponseDTO.HttpResponse candidateEmbeddingResponse = embeddingAPIClient
+				.getEmbeddingSingle(embeddingRequestDTO);
+		EmbeddingResponseDTO candidateEmbeddingData = MappingUtil
+				.mapClientBodyToClass(candidateEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+
+		System.out.println(
+				"Embedding Data: " + candidateEmbeddingData.getEmbedding()
+		);
+
+		// Update the candidate with the embedding
+		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings", candidateEmbeddingData.getEmbedding());
+
+		return candidateHashMapData;
 	}
 
 	private CandidateListingDataDTO candidateEntityToCandidateNewListingDataDTO(CandidateEntity candidateEntity) {
@@ -555,11 +593,11 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
+					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
+					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -583,11 +621,11 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}

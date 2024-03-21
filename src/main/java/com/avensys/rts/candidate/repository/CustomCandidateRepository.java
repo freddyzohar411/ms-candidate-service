@@ -59,4 +59,9 @@ public interface CustomCandidateRepository {
 	Page<CandidateEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
 			searchFields, String searchTerm);
+
+	void insertVector(Long candidateId, String columnName, List<Float> vector);
+
+	void updateVector(Long candidateId, String columnName, List<Float> vector);
+
 }

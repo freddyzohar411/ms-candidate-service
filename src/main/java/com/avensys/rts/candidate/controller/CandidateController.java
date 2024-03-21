@@ -288,6 +288,13 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@GetMapping("create-embeddings/{candidateId}")
+	public ResponseEntity<Object> createCandidateEmbeddings(@PathVariable Integer candidateId) {
+		LOG.info("Candidate create embeddings: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 
 //
 //	@GetMapping("/search")
