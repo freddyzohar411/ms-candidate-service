@@ -1,41 +1,53 @@
 package com.avensys.rts.candidate.service;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-//import java.util.ArrayList;
-//import java.util.List;
-
-import com.avensys.rts.candidate.APIClient.*;
-import com.avensys.rts.candidate.constant.MessageConstants;
-import com.avensys.rts.candidate.model.FieldInformation;
-import com.avensys.rts.candidate.util.StringUtil;
-import com.avensys.rts.candidate.util.UserUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.context.MessageSource;
 
+//import java.util.ArrayList;
+//import java.util.List;
+import com.avensys.rts.candidate.APIClient.CertificationAPIClient;
+import com.avensys.rts.candidate.APIClient.DocumentAPIClient;
+import com.avensys.rts.candidate.APIClient.EducationDetailsAPIClient;
+import com.avensys.rts.candidate.APIClient.EmployerDetailsAPIClient;
+import com.avensys.rts.candidate.APIClient.FormSubmissionAPIClient;
+import com.avensys.rts.candidate.APIClient.LanguagesAPIClient;
+import com.avensys.rts.candidate.APIClient.UserAPIClient;
+import com.avensys.rts.candidate.APIClient.WorkExperienceAPIClient;
+import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CandidateEntity;
+import com.avensys.rts.candidate.entity.CustomFieldsEntity;
+import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.FormSubmissionsResponseDTO;
+import com.avensys.rts.candidate.repository.CandidateCustomFieldsRepository;
 import com.avensys.rts.candidate.repository.CandidateRepository;
 import com.avensys.rts.candidate.util.JwtUtil;
 import com.avensys.rts.candidate.util.MappingUtil;
+import com.avensys.rts.candidate.util.StringUtil;
+import com.avensys.rts.candidate.util.UserUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
 
@@ -51,6 +63,9 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Autowired
 	private MessageSource messageSource;
+
+	@Autowired
+	private CandidateCustomFieldsRepository candidateCustomFieldsRepository;
 
 	@Autowired
 	private EducationDetailsAPIClient educationDetailsAPIClient;
@@ -79,7 +94,8 @@ public class CandidateServiceImpl implements CandidateService {
 		String email = getEmailFromRequest(candidateRequestDTO);
 		if (candidateRepository.existsByEmail(email)) {
 			throw new ServiceException(
-					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));		}
+					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
 		System.out.println("Candidate ID: " + candidateEntity.getId());
 
@@ -317,6 +333,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get candidate data, only basic info
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -329,6 +346,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get all candidate data including all related microservices
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -388,8 +406,9 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	/**
-	 * Get all the fields for all the forms in the candidate service
-	 * including all related microservices
+	 * Get all the fields for all the forms in the candidate service including all
+	 * related microservices
+	 * 
 	 * @return
 	 */
 	@Override
@@ -441,8 +460,8 @@ public class CandidateServiceImpl implements CandidateService {
 		// Get Documents Fields
 		CandidateResponseDTO.HttpResponse documents = formSubmissionAPIClient
 				.getFormFieldNameList("candidate_documents");
-		List<HashMap<String, String>> documentsFields = MappingUtil
-				.mapClientBodyToClass(documents.getData(), List.class);
+		List<HashMap<String, String>> documentsFields = MappingUtil.mapClientBodyToClass(documents.getData(),
+				List.class);
 		allFields.put("documents", documentsFields);
 
 		return allFields;
@@ -566,11 +585,11 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
+					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
+					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -594,13 +613,43 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+
+		System.out.println(" Save candidate customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
+				customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(candidateCustomFieldsEntity);
+	}
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
+		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		return candidateCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(
+			CustomFieldsEntity candidateCustomFieldsEntity) {
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		customFieldsResponseDTO.setColumnName(candidateCustomFieldsEntity.getColumnName());
+		customFieldsResponseDTO.setCreatedBy(candidateCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(candidateCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
 	}
 
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {

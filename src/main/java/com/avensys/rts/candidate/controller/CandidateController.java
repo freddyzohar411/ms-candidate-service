@@ -2,13 +2,6 @@ package com.avensys.rts.candidate.controller;
 
 import java.util.List;
 
-import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
-import com.avensys.rts.candidate.enums.Permission;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
-import com.avensys.rts.candidate.service.CandidateMappingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +20,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.constant.MessageConstants;
+import com.avensys.rts.candidate.enums.Permission;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.candidate.service.CandidateMappingService;
 import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.ResponseUtil;
 
@@ -287,6 +288,16 @@ public class CandidateController {
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+	
+	/*
+     * save all the fields in the custom view
+     */
+    @PostMapping("/save/customfields")
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+    	LOG.info("Save Candidate customFields: Controller");
+        CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.saveCustomFields(customFieldsRequestDTO);
+        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+    }
 
 
 //
