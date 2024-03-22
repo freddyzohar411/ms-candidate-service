@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.enums.Permission;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
@@ -292,6 +293,13 @@ public class CandidateController {
 	public ResponseEntity<Object> createCandidateEmbeddings(@PathVariable Integer candidateId) {
 		LOG.info("Candidate create embeddings: Controller");
 		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("similarity-search/job")
+	public ResponseEntity<Object> similaritySearch(@RequestBody CandidateJobSimilaritySearchRequestDTO jobSimilaritySearchRequestDTO) {
+		LOG.info("Candidate similarity search: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateJobSimilaritySearch(jobSimilaritySearchRequestDTO), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 

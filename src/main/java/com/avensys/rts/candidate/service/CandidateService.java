@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.model.FieldInformation;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchResponseDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
@@ -44,4 +46,6 @@ public interface CandidateService {
 
 	HashMap<String, Object> updateCandidateEmbeddings(Integer candidateId);
 
+	List<CandidateJobSimilaritySearchResponseDTO> getCandidateJobSimilaritySearch(
+			CandidateJobSimilaritySearchRequestDTO candidateJobSimilaritySearchRequestDTO);
 }

@@ -2,12 +2,17 @@ package com.avensys.rts.candidate.APIClient;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.avensys.rts.candidate.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.candidate.payloadnewrequest.EmbeddingRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+
+import java.io.IOException;
 
 /**
  * @author Rahul Sahu
@@ -20,4 +25,7 @@ public interface EmbeddingAPIClient {
 
 	@PostMapping("/get/single")
 	CandidateResponseDTO.HttpResponse getEmbeddingSingle(@RequestBody EmbeddingRequestDTO embeddingRequestDTO);
+
+	@PostMapping("/get/single/py")
+	CandidateResponseDTO.HttpResponse getEmbeddingSinglePy(@RequestBody EmbeddingRequestDTO embeddingRequestDTO);
 }

@@ -1,9 +1,11 @@
 package com.avensys.rts.candidate.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -925,6 +927,35 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				.setParameter("id", candidateId)
 				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
 				.executeUpdate();
+	}
+
+	@Override
+	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarEmbeddingsCosine(List<Float> targetVector, String columnName) {
+		// Convert List<Float> to the format expected by PostgreSQL's vector type
+		String vectorString = targetVector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]"));
+
+		// Prepare and execute the native SQL query
+		String sql = "SELECT id, 1 - (CAST(:queryVector AS vector) <=> " + columnName + ") AS cosine_similarity " +
+				"FROM candidate " +
+				"WHERE " + columnName + " IS NOT NULL " +  // This line ensures the embedding column is not null
+				"ORDER BY cosine_similarity DESC LIMIT 10";
+
+		List<Object[]> resultObjects = entityManager.createNativeQuery(sql)
+				.setParameter("queryVector", vectorString)
+				.getResultList();
+
+		List<CandidateJobSimilaritySearchResponseDTO> results = new ArrayList<>();
+		for (Object[] result : resultObjects) {
+			Long candidateId = ((Number) result[0]).longValue();
+			Double similarityScore = (Double) result[1];
+
+			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
+			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, similarityScore));
+		}
+
+		return results;
 	}
 
 }
