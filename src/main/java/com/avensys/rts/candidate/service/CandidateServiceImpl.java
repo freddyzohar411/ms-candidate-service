@@ -17,8 +17,7 @@ import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.*;
 import com.avensys.rts.candidate.payloadnewresponse.*;
-import com.avensys.rts.candidate.util.StringUtil;
-import com.avensys.rts.candidate.util.UserUtil;
+import com.avensys.rts.candidate.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,8 +31,6 @@ import org.springframework.stereotype.Service;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.repository.CandidateRepository;
-import com.avensys.rts.candidate.util.JwtUtil;
-import com.avensys.rts.candidate.util.MappingUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -67,6 +64,8 @@ public class CandidateServiceImpl implements CandidateService {
 	private FormSubmissionAPIClient formSubmissionAPIClient;
 	@Autowired
 	private EmbeddingAPIClient embeddingAPIClient;
+	@Autowired
+	private JobAPIClient jobAPIClient;
 
 	@Override
 	@Transactional
@@ -447,83 +446,75 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public HashMap<String, Object> updateCandidateEmbeddings(Integer candidateId) {
 		HashMap<String, Object> candidateHashMapData = getCandidateByIdDataAll(candidateId);
-		// Convert it into a json string
-		String candidateDataJsonString = null;
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-//			mapper.enable(SerializationFeature.INDENT_OUTPUT);
-			candidateDataJsonString = mapper.writeValueAsString(candidateHashMapData);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
 
-		String allDetails = extractAllDetails(MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
-		System.out.println("All Details: " + allDetails);
+		// Convert HashMap to JSON String
+		JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(candidateHashMapData);
 
-		// Get Basic Info Embedding
-		String basicInfo = extractBasicInfoDetailsIncludingSkills(
-				MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
-		System.out.println("Basic Info: " + basicInfo);
-
-		// Get education details
-		String educationDetails = extractEducationDetails(
-				MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
-		System.out.println("Education Details: " + educationDetails);
-
-		// Get work experience details
-		String workExperienceDetails = extractWorkExperienceDetails(
-				MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
-		System.out.println("Work Experience Details: " + workExperienceDetails);
+		String candidateDetails = CandidateDataExtractionUtil.extractAllDetails(candidateDataJsonNode);
+		System.out.println("Candidate Details: " + candidateDetails);
 
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
-		embeddingRequestDTO.setText(allDetails);
+		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(candidateDetails));
 
 		CandidateResponseDTO.HttpResponse candidateEmbeddingResponse = embeddingAPIClient
 				.getEmbeddingSinglePy(embeddingRequestDTO);
 		EmbeddingResponseDTO candidateEmbeddingData = MappingUtil
 				.mapClientBodyToClass(candidateEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
 
-		System.out.println("Embedding Data: " + candidateEmbeddingData.getEmbedding());
-
 		// Update the candidate with the embedding
 		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings",
 				candidateEmbeddingData.getEmbedding());
 
-		// Get Basic Info Embedding
-		EmbeddingRequestDTO basicInfoEmbeddingRequestDTO = new EmbeddingRequestDTO();
-		basicInfoEmbeddingRequestDTO.setText(basicInfo);
-		CandidateResponseDTO.HttpResponse basicInfoEmbeddingResponse = embeddingAPIClient
-				.getEmbeddingSinglePy(basicInfoEmbeddingRequestDTO);
-		EmbeddingResponseDTO basicInfoEmbeddingData = MappingUtil
-				.mapClientBodyToClass(basicInfoEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+		// // Get Basic Info Embedding
+		// String basicInfo = extractBasicInfoDetailsIncludingSkills(
+		// MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
+		// System.out.println("Basic Info: " + basicInfo);
+		//
+		// // Get education details
+		// String educationDetails = extractEducationDetails(
+		// MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
+		// System.out.println("Education Details: " + educationDetails);
+		//
+		// // Get work experience details
+		// String workExperienceDetails = extractWorkExperienceDetails(
+		// MappingUtil.convertJSONStringToJsonNode(candidateDataJsonString));
+		// System.out.println("Work Experience Details: " + workExperienceDetails);
 
-		// Get education details embedding
-		EmbeddingRequestDTO educationDetailsEmbeddingRequestDTO = new EmbeddingRequestDTO();
-		educationDetailsEmbeddingRequestDTO.setText(educationDetails);
-		CandidateResponseDTO.HttpResponse educationDetailsEmbeddingResponse = embeddingAPIClient
-				.getEmbeddingSinglePy(educationDetailsEmbeddingRequestDTO);
-		EmbeddingResponseDTO educationDetailsEmbeddingData = MappingUtil
-				.mapClientBodyToClass(educationDetailsEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
-
-		// Get work experience details embedding
-		EmbeddingRequestDTO workExperienceDetailsEmbeddingRequestDTO = new EmbeddingRequestDTO();
-		workExperienceDetailsEmbeddingRequestDTO.setText(workExperienceDetails);
-		CandidateResponseDTO.HttpResponse workExperienceDetailsEmbeddingResponse = embeddingAPIClient
-				.getEmbeddingSinglePy(workExperienceDetailsEmbeddingRequestDTO);
-		EmbeddingResponseDTO workExperienceDetailsEmbeddingData = MappingUtil
-				.mapClientBodyToClass(workExperienceDetailsEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
-
-		// Update the candidate with basic info embedding
-		candidateRepository.updateVector(candidateId.longValue(), "basic_info_embeddings",
-				basicInfoEmbeddingData.getEmbedding());
-
-		// Update candidate education details embedding
-		candidateRepository.updateVector(candidateId.longValue(), "education_embeddings",
-				educationDetailsEmbeddingData.getEmbedding());
-
-		// Update the candidate with basic info embedding
-		candidateRepository.updateVector(candidateId.longValue(), "work_experiences_embeddings",
-				workExperienceDetailsEmbeddingData.getEmbedding());
+//		// Get Basic Info Embedding
+//		EmbeddingRequestDTO basicInfoEmbeddingRequestDTO = new EmbeddingRequestDTO();
+//		basicInfoEmbeddingRequestDTO.setText(basicInfo);
+//		CandidateResponseDTO.HttpResponse basicInfoEmbeddingResponse = embeddingAPIClient
+//				.getEmbeddingSinglePy(basicInfoEmbeddingRequestDTO);
+//		EmbeddingResponseDTO basicInfoEmbeddingData = MappingUtil
+//				.mapClientBodyToClass(basicInfoEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+//
+//		// Get education details embedding
+//		EmbeddingRequestDTO educationDetailsEmbeddingRequestDTO = new EmbeddingRequestDTO();
+//		educationDetailsEmbeddingRequestDTO.setText(educationDetails);
+//		CandidateResponseDTO.HttpResponse educationDetailsEmbeddingResponse = embeddingAPIClient
+//				.getEmbeddingSinglePy(educationDetailsEmbeddingRequestDTO);
+//		EmbeddingResponseDTO educationDetailsEmbeddingData = MappingUtil
+//				.mapClientBodyToClass(educationDetailsEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+//
+//		// Get work experience details embedding
+//		EmbeddingRequestDTO workExperienceDetailsEmbeddingRequestDTO = new EmbeddingRequestDTO();
+//		workExperienceDetailsEmbeddingRequestDTO.setText(workExperienceDetails);
+//		CandidateResponseDTO.HttpResponse workExperienceDetailsEmbeddingResponse = embeddingAPIClient
+//				.getEmbeddingSinglePy(workExperienceDetailsEmbeddingRequestDTO);
+//		EmbeddingResponseDTO workExperienceDetailsEmbeddingData = MappingUtil
+//				.mapClientBodyToClass(workExperienceDetailsEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+//
+//		// Update the candidate with basic info embedding
+//		candidateRepository.updateVector(candidateId.longValue(), "basic_info_embeddings",
+//				basicInfoEmbeddingData.getEmbedding());
+//
+//		// Update candidate education details embedding
+//		candidateRepository.updateVector(candidateId.longValue(), "education_embeddings",
+//				educationDetailsEmbeddingData.getEmbedding());
+//
+//		// Update the candidate with basic info embedding
+//		candidateRepository.updateVector(candidateId.longValue(), "work_experiences_embeddings",
+//				workExperienceDetailsEmbeddingData.getEmbedding());
 
 		return candidateHashMapData;
 	}
@@ -532,9 +523,7 @@ public class CandidateServiceImpl implements CandidateService {
 	public List<CandidateJobSimilaritySearchResponseDTO> getCandidateJobSimilaritySearch(
 			CandidateJobSimilaritySearchRequestDTO candidateJobSimilaritySearchRequestDTO) {
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
-		System.out.println(
-				"Job Description: " + removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
-		embeddingRequestDTO.setText(removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
+		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
 		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = embeddingAPIClient
 				.getEmbeddingSinglePy(embeddingRequestDTO);
 		EmbeddingResponseDTO jobEmbeddingData = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
@@ -724,19 +713,25 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-		// Get the job description
-		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+		// Get the job data
+		CandidateResponseDTO.HttpResponse jobResponse = jobAPIClient.getJobByIdDataAll(jobId);
+		HashMap<String, Object> jobData = MappingUtil.mapClientBodyToClass(jobResponse.getData(), HashMap.class);
+		JsonNode jobJsonNode = MappingUtil.convertHashMapToJsonNode(jobData);
+		JobDataExtractionUtil.printJSON(jobJsonNode);
+		String jobDescription = JobDataExtractionUtil.extractJobInfo(jobJsonNode);
+		System.out.println("Job Description: " + jobDescription);
 
-//		embeddingRequestDTO.setText(removeStopWords("Need web designer with 5 years of experience"));
-		embeddingRequestDTO.setText(removeStopWords("Need aerospace engineer who is good in aerodynamics"));
+		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(jobDescription));
 		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = embeddingAPIClient
 				.getEmbeddingSinglePy(embeddingRequestDTO);
 		EmbeddingResponseDTO jobEmbeddingData = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
 				EmbeddingResponseDTO.class);
 		List<Float> jobEmbedding = jobEmbeddingData.getEmbedding();
 
-		Page<CandidateEntityWithSimilarity> result = candidateRepository.findAllByOrderByStringWithUserIdsAndSimilaritySearch(
-				userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, jobEmbedding);
+		Page<CandidateEntityWithSimilarity> result = candidateRepository
+				.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false, false,
+						true, pageRequest, jobEmbedding);
 
 		return result;
 	}
@@ -747,385 +742,5 @@ public class CandidateServiceImpl implements CandidateService {
 //		return candidateEntities;
 //	}
 
-	public static String extractRelevantDetails(JsonNode candidate) {
-		StringBuilder details = new StringBuilder();
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		long totalExperienceMillis = 0;
-
-		// Basic Info and Profile Summary
-		JsonNode basicInfo = candidate.get("basicInfo");
-		if (basicInfo != null) { // Check if basicInfo is not null
-			String profileSummary = basicInfo.get("profileSummary") != null ? basicInfo.get("profileSummary").asText("")
-					: "";
-			details.append("Profile Summary: ").append(profileSummary).append("\n");
-		}
-
-//		// Work Experience
-//		details.append("Work Experience:\n");
-//		JsonNode workExperiences = candidate.get("workExperiences");
-//		if (workExperiences != null && workExperiences.isArray()) {
-//			for (JsonNode item : workExperiences) {
-//				String title = item.get("title") != null ? item.get("title").asText("") : "";
-//				String companyName = item.get("companyName") != null ? item.get("companyName").asText("") : "";
-//				String description = item.get("description") != null ? item.get("description").asText("") : "";
-//				details.append(title).append(" at ").append(companyName).append(", ").append(description).append("\n");
-//			}
-//		}
-
-		// Work Experience and calculating total experience
-		details.append("Work Experience:\n");
-		JsonNode workExperiences = candidate.get("workExperiences");
-		if (workExperiences != null && workExperiences.isArray()) {
-			for (JsonNode item : workExperiences) {
-				String title = item.get("title") != null ? item.get("title").asText("") : "";
-				String companyName = item.get("companyName") != null ? item.get("companyName").asText("") : "";
-				String description = item.get("description") != null ? item.get("description").asText("") : "";
-				String startDate = item.get("startDate").asText("");
-				String endDate = item.get("endDate").asText("");
-
-				// Calculate experience duration for each job
-				try {
-					Date start = dateFormat.parse(startDate);
-					Date end = dateFormat.parse(endDate);
-					long experienceDurationMillis = end.getTime() - start.getTime();
-					totalExperienceMillis += experienceDurationMillis;
-					long experienceYears = experienceDurationMillis / (365 * 24 * 60 * 60 * 1000L); // Convert
-																									// milliseconds to
-																									// years
-					details.append(title).append(" at ").append(companyName).append(" (").append(experienceYears)
-							.append(" years), ").append(description).append("\n");
-				} catch (ParseException e) {
-					e.printStackTrace(); // Handle date parsing exception
-				}
-			}
-		}
-
-		// Append total years of experience
-		long totalExperienceYears = totalExperienceMillis / (365 * 24 * 60 * 60 * 1000L);
-		details.append("Total Years of Experience: ").append(totalExperienceYears).append("\n");
-
-		// Education Details
-		details.append("Education Details:\n");
-		JsonNode educationDetails = candidate.get("educationDetails");
-		if (educationDetails != null && educationDetails.isArray()) {
-			for (JsonNode item : educationDetails) {
-				String qualification = item.get("qualification") != null ? item.get("qualification").asText("") : "";
-				String fieldOfStudy = item.get("fieldOfStudy") != null ? item.get("fieldOfStudy").asText("") : "";
-				String institution = item.get("institution") != null ? item.get("institution").asText("") : "";
-				details.append(qualification).append(" in ").append(fieldOfStudy).append(", ").append(institution)
-						.append("\n");
-			}
-		}
-
-		// Skills
-		if (basicInfo != null) {
-			String primarySkills = basicInfo.get("primarySkills") != null ? basicInfo.get("primarySkills").asText("")
-					: "";
-			String secondarySkills = basicInfo.get("secondarySkills") != null
-					? basicInfo.get("secondarySkills").asText("")
-					: "";
-			if (!primarySkills.isEmpty() || !secondarySkills.isEmpty()) {
-				details.append("Skills: ").append(primarySkills);
-				if (!primarySkills.isEmpty() && !secondarySkills.isEmpty()) {
-					details.append(", ");
-				}
-				details.append(secondarySkills).append("\n");
-			}
-		}
-
-		// Certifications
-		details.append("Certifications:\n");
-		JsonNode certifications = candidate.get("certification");
-		if (certifications != null && certifications.isArray()) {
-			for (JsonNode item : certifications) {
-				String certification = item.get("certification") != null ? item.get("certification").asText("") : "";
-				details.append(certification).append("\n");
-			}
-		}
-
-		// Skills
-		details.append("Skills:\n");
-		if (basicInfo != null) {
-			String primarySkills = basicInfo.get("primarySkills") != null ? basicInfo.get("primarySkills").asText("")
-					: "";
-			String secondarySkills = basicInfo.get("secondarySkills") != null
-					? basicInfo.get("secondarySkills").asText("")
-					: "";
-			String skill1 = basicInfo.get("skill1") != null ? basicInfo.get("skill1").asText("") : "";
-			String skill2 = basicInfo.get("skill2") != null ? basicInfo.get("skill2").asText("") : "";
-			String skill3 = basicInfo.get("skill3") != null ? basicInfo.get("skill3").asText("") : "";
-			List<String> skillsList = new ArrayList<>();
-			if (!primarySkills.isEmpty())
-				skillsList.add(primarySkills);
-			if (!secondarySkills.isEmpty())
-				skillsList.add(secondarySkills);
-			if (!skill1.isEmpty())
-				skillsList.add(skill1);
-			if (!skill2.isEmpty())
-				skillsList.add(skill2);
-			if (!skill3.isEmpty())
-				skillsList.add(skill3);
-
-			// Join all skills with comma separation and append
-			details.append(String.join(", ", skillsList)).append("\n");
-		}
-
-		// Languages
-		details.append("Languages:\n");
-		JsonNode languages = candidate.get("languages");
-		if (languages != null && languages.isArray()) {
-			for (JsonNode item : languages) {
-				String language = item.get("language") != null ? item.get("language").asText("") : "";
-				details.append(language).append("\n");
-			}
-		}
-
-		return details.toString();
-	}
-
-	public String extractBasicInfoDetailsIncludingSkills(JsonNode candidate) {
-		StringBuilder details = new StringBuilder();
-		JsonNode basicInfo = candidate.get("basicInfo");
-		if (basicInfo != null) { // Check if basicInfo is not null
-			details.append("Candidate Basic Information:\n");
-
-			// Basic Information
-			if (basicInfo.has("firstName") && basicInfo.has("lastName")) {
-				String firstName = basicInfo.get("firstName").asText("");
-				String lastName = basicInfo.get("lastName").asText("");
-				if (!firstName.isEmpty() || !lastName.isEmpty()) {
-					details.append("Name: ").append(firstName).append(" ").append(lastName).append("\n");
-				}
-			}
-
-			if (basicInfo.has("currentPositionTitle") && !basicInfo.get("currentPositionTitle").asText().isEmpty()) {
-				details.append("Current Position: ").append(basicInfo.get("currentPositionTitle").asText())
-						.append("\n");
-			}
-
-			if (basicInfo.has("currentLocation") && !basicInfo.get("currentLocation").asText().isEmpty()) {
-				details.append("Current Location: ").append(basicInfo.get("currentLocation").asText()).append("\n");
-			}
-
-			if (basicInfo.has("candidateNationality") && !basicInfo.get("candidateNationality").asText().isEmpty()) {
-				details.append("Candidate Nationality: ").append(basicInfo.get("candidateNationality").asText())
-						.append("\n");
-			}
-
-			if (basicInfo.has("profileSummary") && !basicInfo.get("profileSummary").asText().isEmpty()) {
-				details.append("Profile Summary: ").append(basicInfo.get("profileSummary").asText()).append("\n");
-			}
-
-			// Skills
-			if (basicInfo.has("primarySkill") && !basicInfo.get("primarySkill").asText().isEmpty()) {
-				details.append("Primary Skill: ").append(basicInfo.get("primarySkill").asText()).append("\n");
-			}
-
-			if (basicInfo.has("primarySkills") && !basicInfo.get("primarySkills").asText().isEmpty()) {
-				details.append("Primary Skills: ").append(basicInfo.get("primarySkills").asText()).append("\n");
-			}
-
-			if (basicInfo.has("skill1") && !basicInfo.get("skill1").asText().isEmpty()) {
-				details.append("Skill 1: ").append(basicInfo.get("skill1").asText()).append("\n");
-			}
-
-			if (basicInfo.has("skill2") && !basicInfo.get("skill2").asText().isEmpty()) {
-				details.append("Skill 2: ").append(basicInfo.get("skill2").asText()).append("\n");
-			}
-
-			if (basicInfo.has("skill3") && !basicInfo.get("skill3").asText().isEmpty()) {
-				details.append("Skill 3: ").append(basicInfo.get("skill3").asText()).append("\n");
-			}
-
-			if (basicInfo.has("secondarySkill") && !basicInfo.get("secondarySkill").asText().isEmpty()) {
-				details.append("Secondary Skill: ").append(basicInfo.get("secondarySkill").asText()).append("\n");
-			}
-
-			if (basicInfo.has("secondarySkills") && !basicInfo.get("secondarySkills").asText().isEmpty()) {
-				details.append("Secondary Skills: ").append(basicInfo.get("secondarySkills").asText()).append("\n");
-			}
-
-			// Languages
-			JsonNode languages = candidate.get("languages");
-			if (languages != null && languages.isArray() && languages.size() > 0) {
-				details.append("Languages: ");
-				for (JsonNode languageNode : languages) {
-					if (languageNode.has("language") && !languageNode.get("language").asText().isEmpty()) {
-						details.append(languageNode.get("language").asText()).append(", ");
-					}
-				}
-				// Remove the last comma and space if there were any languages listed
-				if (details.toString().endsWith(", ")) {
-					details.setLength(details.length() - 2); // Remove the last two characters (comma and space)
-				}
-				details.append("\n");
-			}
-		}
-		return details.toString();
-	}
-
-	public String extractEducationDetails(JsonNode candidate) {
-		StringBuilder details = new StringBuilder();
-		JsonNode educationDetails = candidate.get("educationDetails");
-		if (educationDetails != null && educationDetails.isArray()) { // Check if educationDetails is not null and is an
-																		// array
-			details.append("Candidate Education Details:\n");
-			for (JsonNode item : educationDetails) {
-				StringBuilder educationSentence = new StringBuilder();
-				String institution = item.has("institution") ? item.get("institution").asText("") : "";
-				String fieldOfStudy = item.has("fieldOfStudy") ? item.get("fieldOfStudy").asText("") : "";
-				String qualification = item.has("qualification") ? item.get("qualification").asText("") : "";
-				String startDate = item.has("startDate") ? item.get("startDate").asText("") : "";
-				String graduationDate = item.has("graudationDate") ? item.get("graudationDate").asText("") : "";
-				String grade = item.has("grade") && !item.get("grade").asText().isEmpty()
-						? ", with a grade of " + item.get("grade").asText()
-						: ""; // Added check for empty
-				String activities = item.has("activities") ? item.get("activities").asText("") : "";
-				String description = item.has("description") ? item.get("description").asText("") : "";
-
-				// Constructing a concise summary for each education entry
-				if (!qualification.isEmpty()) {
-					educationSentence.append("Achieved ").append(qualification);
-					if (!fieldOfStudy.isEmpty()) {
-						educationSentence.append(" in ").append(fieldOfStudy);
-					}
-					if (!institution.isEmpty()) {
-						educationSentence.append(" from ").append(institution);
-					}
-					if (!startDate.isEmpty() || !graduationDate.isEmpty()) {
-						educationSentence.append(", studied from ").append(startDate).append(" to ")
-								.append(graduationDate);
-					}
-					educationSentence.append(grade).append(".\n");
-				}
-
-				// Append the constructed education sentence if it's not empty
-				if (educationSentence.length() > 0) {
-					details.append(educationSentence.toString());
-				}
-
-				// Keeping activities and description as provided, only if they are not empty
-				if (!activities.isEmpty()) {
-					details.append("Activities: ").append(activities).append(".\n");
-				}
-
-				if (!description.isEmpty()) {
-					details.append("Description: ").append(description).append(".\n");
-				}
-
-				details.append("\n"); // Add an extra newline for spacing between entries
-			}
-		}
-		return details.toString();
-	}
-
-	public String extractWorkExperienceDetails(JsonNode candidate) {
-		StringBuilder details = new StringBuilder();
-		JsonNode workExperiences = candidate.get("workExperiences");
-		long totalMonths = 0; // For calculating total work experience
-		if (workExperiences != null && workExperiences.isArray()) { // Check if workExperiences is not null and is an
-																	// array
-			details.append("Candidate Work Experience Details:\n");
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-			for (JsonNode item : workExperiences) {
-				StringBuilder experienceSentence = new StringBuilder();
-				String title = item.has("title") ? item.get("title").asText("") : "";
-				String companyName = item.has("companyName") ? item.get("companyName").asText("") : "";
-				String startDateStr = item.has("startDate") ? item.get("startDate").asText("") : "";
-				String endDateStr = item.has("endDate") && !item.get("endDate").asText().equals("NaN-NaN-NaN")
-						? item.get("endDate").asText()
-						: "Present"; // Check for valid end date
-				String description = item.has("description") ? item.get("description").asText("") : "";
-				String projectSnippet = item.has("Projectsnippet") ? item.get("Projectsnippet").asText("") : "";
-				LocalDate startDate = null, endDate = null;
-
-				// Attempt to parse the start and end dates
-				try {
-					startDate = !startDateStr.isEmpty() ? LocalDate.parse(startDateStr, formatter) : null;
-					endDate = !endDateStr.isEmpty() && !endDateStr.equals("Present")
-							? LocalDate.parse(endDateStr, formatter)
-							: LocalDate.now(); // Use current date if "Present"
-				} catch (DateTimeParseException e) {
-					// If parsing fails, leave the dates as null
-				}
-
-				// Calculate the duration of the work in months
-				long monthsWorked = 0;
-				if (startDate != null && endDate != null) {
-					monthsWorked = ChronoUnit.MONTHS.between(startDate, endDate);
-					totalMonths += monthsWorked; // Add to total work experience
-				}
-
-				// Constructing a concise summary for each work entry
-				if (!title.isEmpty()) {
-					experienceSentence.append("Worked as ").append(title);
-					if (!companyName.isEmpty()) {
-						experienceSentence.append(" at ").append(companyName);
-					}
-					if (monthsWorked > 0) {
-						long years = monthsWorked / 12;
-						long months = monthsWorked % 12;
-						experienceSentence.append(" for ");
-						if (years > 0) {
-							experienceSentence.append(years).append(" years ");
-						}
-						if (months > 0) {
-							experienceSentence.append(months).append(" months");
-						}
-					}
-					experienceSentence.append(".\n");
-				}
-
-				if (!description.isEmpty()) {
-					experienceSentence.append("Role involved: ").append(description).append(".\n");
-				}
-
-				if (!projectSnippet.isEmpty()) {
-					experienceSentence.append("Key projects: ").append(projectSnippet).append(".\n");
-				}
-
-				// Append the constructed work experience sentence if it's not empty
-				if (experienceSentence.length() > 0) {
-					details.append(experienceSentence.toString()).append("\n");
-				}
-			}
-
-			// Adding total work experience at the end
-			long totalYears = totalMonths / 12;
-			long totalRemainingMonths = totalMonths % 12;
-			details.append("Total Work Experience: ").append(totalYears).append(" years and ")
-					.append(totalRemainingMonths).append(" months.\n");
-		}
-		return details.toString();
-	}
-
-	// Combine all the details into a single string
-	public String extractAllDetails(JsonNode candidate) {
-		StringBuilder details = new StringBuilder();
-		details.append(extractBasicInfoDetailsIncludingSkills(candidate));
-		details.append(extractEducationDetails(candidate));
-		details.append(extractWorkExperienceDetails(candidate));
-		return details.toString();
-	}
-
-	// Assuming you have a set of stop words
-	private static final Set<String> STOP_WORDS = new HashSet<>(Arrays.asList("i", "me", "my", "myself", "we", "our",
-			"ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she",
-			"her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what",
-			"which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been",
-			"being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if",
-			"or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between",
-			"into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out",
-			"on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why",
-			"how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not",
-			"only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should",
-			"now"));
-
-	public static String removeStopWords(String jobDescription) {
-		// Tokenize the string and remove stop words
-		return Arrays.stream(jobDescription.split("\\s+")).filter(word -> !STOP_WORDS.contains(word.toLowerCase()))
-				.collect(Collectors.joining(" "));
-	}
 
 }

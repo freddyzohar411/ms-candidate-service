@@ -87,4 +87,10 @@ public class MappingUtil {
 		return JsonNodeList;
 	}
 
+	public static JsonNode convertHashMapToJsonNode(Map<String, Object> map) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		return objectMapper.convertValue(map, JsonNode.class);
+	}
+
 }
