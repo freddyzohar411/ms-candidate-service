@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 //import java.util.List;
 
 import com.avensys.rts.candidate.APIClient.*;
+import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.*;
 import com.avensys.rts.candidate.payloadnewresponse.*;
@@ -512,7 +513,6 @@ public class CandidateServiceImpl implements CandidateService {
 		EmbeddingResponseDTO workExperienceDetailsEmbeddingData = MappingUtil
 				.mapClientBodyToClass(workExperienceDetailsEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
 
-
 		// Update the candidate with basic info embedding
 		candidateRepository.updateVector(candidateId.longValue(), "basic_info_embeddings",
 				basicInfoEmbeddingData.getEmbedding());
@@ -525,7 +525,6 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateRepository.updateVector(candidateId.longValue(), "work_experiences_embeddings",
 				workExperienceDetailsEmbeddingData.getEmbedding());
 
-
 		return candidateHashMapData;
 	}
 
@@ -533,7 +532,8 @@ public class CandidateServiceImpl implements CandidateService {
 	public List<CandidateJobSimilaritySearchResponseDTO> getCandidateJobSimilaritySearch(
 			CandidateJobSimilaritySearchRequestDTO candidateJobSimilaritySearchRequestDTO) {
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
-		System.out.println("Job Description: " + removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
+		System.out.println(
+				"Job Description: " + removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
 		embeddingRequestDTO.setText(removeStopWords(candidateJobSimilaritySearchRequestDTO.getJobDescription()));
 		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = embeddingAPIClient
 				.getEmbeddingSinglePy(embeddingRequestDTO);
@@ -696,6 +696,49 @@ public class CandidateServiceImpl implements CandidateService {
 					false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+	}
+
+	@Override
+	public Page<CandidateEntityWithSimilarity> getCandidateListingPageWithSimilaritySearch(
+			CandidateListingRequestDTO candidateListingRequestDTO) {
+		Integer page = candidateListingRequestDTO.getPage();
+		Integer size = candidateListingRequestDTO.getPageSize();
+		String sortBy = candidateListingRequestDTO.getSortBy();
+		String sortDirection = candidateListingRequestDTO.getSortDirection();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		Long jobId = candidateListingRequestDTO.getJobId();
+		System.out.println("Job Id: " + jobId);
+		System.out.println("Page: " + page);
+		System.out.println("PageSize: " + size);
+		System.out.println("SortBy: " + sortBy);
+		System.out.println("SortDirection: " + sortDirection);
+		System.out.println("SearchTerm: " + searchTerm);
+
+		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+		if (sortDirection != null && !sortDirection.isEmpty()) {
+			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+		}
+		if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
+			sortBy = "cosine_similarity";
+			direction = Sort.Direction.DESC;
+		}
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		// Get the job description
+		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+
+//		embeddingRequestDTO.setText(removeStopWords("Need web designer with 5 years of experience"));
+		embeddingRequestDTO.setText(removeStopWords("Need aerospace engineer who is good in aerodynamics"));
+		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = embeddingAPIClient
+				.getEmbeddingSinglePy(embeddingRequestDTO);
+		EmbeddingResponseDTO jobEmbeddingData = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
+				EmbeddingResponseDTO.class);
+		List<Float> jobEmbedding = jobEmbeddingData.getEmbedding();
+
+		Page<CandidateEntityWithSimilarity> result = candidateRepository.findAllByOrderByStringWithUserIdsAndSimilaritySearch(
+				userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, jobEmbedding);
+
+		return result;
 	}
 
 	// @Override
@@ -924,7 +967,8 @@ public class CandidateServiceImpl implements CandidateService {
 	public String extractEducationDetails(JsonNode candidate) {
 		StringBuilder details = new StringBuilder();
 		JsonNode educationDetails = candidate.get("educationDetails");
-		if (educationDetails != null && educationDetails.isArray()) { // Check if educationDetails is not null and is an array
+		if (educationDetails != null && educationDetails.isArray()) { // Check if educationDetails is not null and is an
+																		// array
 			details.append("Candidate Education Details:\n");
 			for (JsonNode item : educationDetails) {
 				StringBuilder educationSentence = new StringBuilder();
@@ -933,7 +977,9 @@ public class CandidateServiceImpl implements CandidateService {
 				String qualification = item.has("qualification") ? item.get("qualification").asText("") : "";
 				String startDate = item.has("startDate") ? item.get("startDate").asText("") : "";
 				String graduationDate = item.has("graudationDate") ? item.get("graudationDate").asText("") : "";
-				String grade = item.has("grade") && !item.get("grade").asText().isEmpty() ? ", with a grade of " + item.get("grade").asText() : ""; // Added check for empty
+				String grade = item.has("grade") && !item.get("grade").asText().isEmpty()
+						? ", with a grade of " + item.get("grade").asText()
+						: ""; // Added check for empty
 				String activities = item.has("activities") ? item.get("activities").asText("") : "";
 				String description = item.has("description") ? item.get("description").asText("") : "";
 
@@ -947,7 +993,8 @@ public class CandidateServiceImpl implements CandidateService {
 						educationSentence.append(" from ").append(institution);
 					}
 					if (!startDate.isEmpty() || !graduationDate.isEmpty()) {
-						educationSentence.append(", studied from ").append(startDate).append(" to ").append(graduationDate);
+						educationSentence.append(", studied from ").append(startDate).append(" to ")
+								.append(graduationDate);
 					}
 					educationSentence.append(grade).append(".\n");
 				}
@@ -972,11 +1019,12 @@ public class CandidateServiceImpl implements CandidateService {
 		return details.toString();
 	}
 
-	public  String extractWorkExperienceDetails(JsonNode candidate) {
+	public String extractWorkExperienceDetails(JsonNode candidate) {
 		StringBuilder details = new StringBuilder();
 		JsonNode workExperiences = candidate.get("workExperiences");
 		long totalMonths = 0; // For calculating total work experience
-		if (workExperiences != null && workExperiences.isArray()) { // Check if workExperiences is not null and is an array
+		if (workExperiences != null && workExperiences.isArray()) { // Check if workExperiences is not null and is an
+																	// array
 			details.append("Candidate Work Experience Details:\n");
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -985,7 +1033,9 @@ public class CandidateServiceImpl implements CandidateService {
 				String title = item.has("title") ? item.get("title").asText("") : "";
 				String companyName = item.has("companyName") ? item.get("companyName").asText("") : "";
 				String startDateStr = item.has("startDate") ? item.get("startDate").asText("") : "";
-				String endDateStr = item.has("endDate") && !item.get("endDate").asText().equals("NaN-NaN-NaN") ? item.get("endDate").asText() : "Present"; // Check for valid end date
+				String endDateStr = item.has("endDate") && !item.get("endDate").asText().equals("NaN-NaN-NaN")
+						? item.get("endDate").asText()
+						: "Present"; // Check for valid end date
 				String description = item.has("description") ? item.get("description").asText("") : "";
 				String projectSnippet = item.has("Projectsnippet") ? item.get("Projectsnippet").asText("") : "";
 				LocalDate startDate = null, endDate = null;
@@ -993,7 +1043,9 @@ public class CandidateServiceImpl implements CandidateService {
 				// Attempt to parse the start and end dates
 				try {
 					startDate = !startDateStr.isEmpty() ? LocalDate.parse(startDateStr, formatter) : null;
-					endDate = !endDateStr.isEmpty() && !endDateStr.equals("Present") ? LocalDate.parse(endDateStr, formatter) : LocalDate.now(); // Use current date if "Present"
+					endDate = !endDateStr.isEmpty() && !endDateStr.equals("Present")
+							? LocalDate.parse(endDateStr, formatter)
+							: LocalDate.now(); // Use current date if "Present"
 				} catch (DateTimeParseException e) {
 					// If parsing fails, leave the dates as null
 				}
@@ -1042,13 +1094,14 @@ public class CandidateServiceImpl implements CandidateService {
 			// Adding total work experience at the end
 			long totalYears = totalMonths / 12;
 			long totalRemainingMonths = totalMonths % 12;
-			details.append("Total Work Experience: ").append(totalYears).append(" years and ").append(totalRemainingMonths).append(" months.\n");
+			details.append("Total Work Experience: ").append(totalYears).append(" years and ")
+					.append(totalRemainingMonths).append(" months.\n");
 		}
 		return details.toString();
 	}
 
 	// Combine all the details into a single string
-	public  String extractAllDetails(JsonNode candidate) {
+	public String extractAllDetails(JsonNode candidate) {
 		StringBuilder details = new StringBuilder();
 		details.append(extractBasicInfoDetailsIncludingSkills(candidate));
 		details.append(extractEducationDetails(candidate));
@@ -1057,27 +1110,22 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	// Assuming you have a set of stop words
-	private static final Set<String> STOP_WORDS = new HashSet<>(Arrays.asList(
-			"i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours",
-			"yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers",
-			"herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves",
-			"what", "which", "who", "whom", "this", "that", "these", "those", "am", "is", "are",
-			"was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does",
-			"did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until",
-			"while", "of", "at", "by", "for", "with", "about", "against", "between", "into",
-			"through", "during", "before", "after", "above", "below", "to", "from", "up", "down",
-			"in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here",
-			"there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more",
-			"most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so",
-			"than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"
-	));
+	private static final Set<String> STOP_WORDS = new HashSet<>(Arrays.asList("i", "me", "my", "myself", "we", "our",
+			"ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she",
+			"her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what",
+			"which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been",
+			"being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if",
+			"or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between",
+			"into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out",
+			"on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why",
+			"how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not",
+			"only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should",
+			"now"));
 
 	public static String removeStopWords(String jobDescription) {
 		// Tokenize the string and remove stop words
-		return Arrays.stream(jobDescription.split("\\s+"))
-				.filter(word -> !STOP_WORDS.contains(word.toLowerCase()))
+		return Arrays.stream(jobDescription.split("\\s+")).filter(word -> !STOP_WORDS.contains(word.toLowerCase()))
 				.collect(Collectors.joining(" "));
 	}
-
 
 }

@@ -200,31 +200,23 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-//	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-//	@PostMapping("/listing/similarity-search")
-//	public ResponseEntity<Object> getCandidateListingMatch(
-//			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
-//		LOG.info("Candidate get all fields: Controller");
-//		Integer page = candidateListingRequestDTO.getPage();
-//		Integer pageSize = candidateListingRequestDTO.getPageSize();
-//		String sortBy = candidateListingRequestDTO.getSortBy();
-//		String sortDirection = candidateListingRequestDTO.getSortDirection();
-//		String searchTerm = candidateListingRequestDTO.getSearchTerm();
-//		Long jobId = candidateListingRequestDTO.getJobId();
-//
-//		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
-//		if (searchTerm == null || searchTerm.isEmpty()) {
-//			return ResponseUtil.generateSuccessResponse(
-//					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, false),
-//					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-//							LocaleContextHolder.getLocale()));
-//		}
-//		return ResponseUtil.generateSuccessResponse(
-//				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-//						searchFields, false),
-//				HttpStatus.OK,
-//				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//	}
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+	@PostMapping("/listing/similarity-search")
+	public ResponseEntity<Object> getCandidateListingMatch(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+		LOG.info("Candidate get all fields: Controller");
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
+		}
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/all")
@@ -296,9 +288,11 @@ public class CandidateController {
 	 *
 	 */
 	@PostMapping("/mapping/save")
-	public ResponseEntity<Object> saveCandidateMapping(@RequestBody CandidateMappingRequestDTO candidateListingDataDTO) {
+	public ResponseEntity<Object> saveCandidateMapping(
+			@RequestBody CandidateMappingRequestDTO candidateListingDataDTO) {
 		LOG.info("Candidate save mapping: Controller");
-		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.saveCandidateMapping(candidateListingDataDTO);
+		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService
+				.saveCandidateMapping(candidateListingDataDTO);
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.CREATED,
 				messageSource.getMessage(MessageConstants.CANDIDATE_CREATED, null, LocaleContextHolder.getLocale()));
 	}
@@ -318,17 +312,19 @@ public class CandidateController {
 	@GetMapping("create-embeddings/{candidateId}")
 	public ResponseEntity<Object> createCandidateEmbeddings(@PathVariable Integer candidateId) {
 		LOG.info("Candidate create embeddings: Controller");
-		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId), HttpStatus.OK,
+		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId),
+				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	@PostMapping("similarity-search/job")
-	public ResponseEntity<Object> similaritySearch(@RequestBody CandidateJobSimilaritySearchRequestDTO jobSimilaritySearchRequestDTO) {
+	public ResponseEntity<Object> similaritySearch(
+			@RequestBody CandidateJobSimilaritySearchRequestDTO jobSimilaritySearchRequestDTO) {
 		LOG.info("Candidate similarity search: Controller");
-		return ResponseUtil.generateSuccessResponse(candidateNewService.getCandidateJobSimilaritySearch(jobSimilaritySearchRequestDTO), HttpStatus.OK,
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateJobSimilaritySearch(jobSimilaritySearchRequestDTO), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-
 
 //
 //	@GetMapping("/search")

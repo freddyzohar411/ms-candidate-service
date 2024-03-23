@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.Set;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
+import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+import org.springframework.data.domain.Page;
 
 public interface CandidateService {
 	CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO);
@@ -31,7 +34,9 @@ public interface CandidateService {
 	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection, Boolean getAll);
 	
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean getAll);
-	
+
+	Page<CandidateEntityWithSimilarity> getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO);
+
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 	
 	List<CandidateEntity>getAllCandidatesByUser(boolean draft, boolean deleted);
@@ -48,4 +53,5 @@ public interface CandidateService {
 
 	List<CandidateJobSimilaritySearchResponseDTO> getCandidateJobSimilaritySearch(
 			CandidateJobSimilaritySearchRequestDTO candidateJobSimilaritySearchRequestDTO);
+
 }
