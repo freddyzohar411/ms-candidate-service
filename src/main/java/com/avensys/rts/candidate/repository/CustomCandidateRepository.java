@@ -5,7 +5,7 @@ package com.avensys.rts.candidate.repository;
 import java.util.List;
 import java.util.Set;
 
-import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -67,4 +67,5 @@ public interface CustomCandidateRepository {
 
 	List<CandidateJobSimilaritySearchResponseDTO> findSimilarEmbeddingsCosine(List<Float> targetVector, String columnName);
 
+	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarSumScoresWithJobDescription(List<Float> jobDescriptionVector);
 }

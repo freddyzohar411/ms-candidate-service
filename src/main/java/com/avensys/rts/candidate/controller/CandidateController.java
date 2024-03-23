@@ -200,6 +200,32 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+//	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+//	@PostMapping("/listing/similarity-search")
+//	public ResponseEntity<Object> getCandidateListingMatch(
+//			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+//		LOG.info("Candidate get all fields: Controller");
+//		Integer page = candidateListingRequestDTO.getPage();
+//		Integer pageSize = candidateListingRequestDTO.getPageSize();
+//		String sortBy = candidateListingRequestDTO.getSortBy();
+//		String sortDirection = candidateListingRequestDTO.getSortDirection();
+//		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+//		Long jobId = candidateListingRequestDTO.getJobId();
+//
+//		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+//		if (searchTerm == null || searchTerm.isEmpty()) {
+//			return ResponseUtil.generateSuccessResponse(
+//					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, false),
+//					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+//							LocaleContextHolder.getLocale()));
+//		}
+//		return ResponseUtil.generateSuccessResponse(
+//				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+//						searchFields, false),
+//				HttpStatus.OK,
+//				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+//	}
+
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/all")
 	public ResponseEntity<Object> getCandidateListingAll(

@@ -1,4 +1,4 @@
-package com.avensys.rts.candidate.payloadnewrequest;
+package com.avensys.rts.candidate.payloadnewresponse;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import lombok.AllArgsConstructor;
@@ -13,4 +13,8 @@ import lombok.Setter;
 public class CandidateJobSimilaritySearchResponseDTO {
 	private CandidateEntity candidate;
 	private Double similarityScore;
+	private Double similaritySum;
+	private Double basicInfoSimilarity;
+	private Double educationSimilarity;
+	private Double workExperienceSimilarity;
 }

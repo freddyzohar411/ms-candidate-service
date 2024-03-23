@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -952,10 +952,50 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			Double similarityScore = (Double) result[1];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
-			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, similarityScore));
+			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, similarityScore,0.0,0.0,0.0,0.0));
 		}
 
 		return results;
 	}
+
+	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarSumScoresWithJobDescription(List<Float> jobDescriptionVector) {
+		// Convert List<Float> to the format expected by PostgreSQL's vector type
+		String jobDescriptionString = jobDescriptionVector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]"));
+
+		// Prepare and execute the native SQL query
+		String sql = "SELECT id, " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) + " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) + " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS similarity_sum, " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) AS basic_info_similarity, " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) AS education_similarity, " +
+				"1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS work_experience_similarity " +
+				"FROM candidate " +
+				"WHERE basic_info_embeddings IS NOT NULL AND " +
+				"education_embeddings IS NOT NULL AND " +
+				"work_experiences_embeddings IS NOT NULL " +
+				"ORDER BY similarity_sum DESC LIMIT 10";
+
+		List<Object[]> resultObjects = entityManager.createNativeQuery(sql)
+				.setParameter("jobDescriptionVector", jobDescriptionString)
+				.getResultList();
+
+		List<CandidateJobSimilaritySearchResponseDTO> results = new ArrayList<>();
+		for (Object[] result : resultObjects) {
+			Long candidateId = ((Number) result[0]).longValue();
+			Double similaritySum = (Double) result[1];
+			Double basicInfoSimilarity = (Double) result[2];
+			Double educationSimilarity = (Double) result[3];
+			Double workExperienceSimilarity = (Double) result[4];
+
+			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
+			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, 0.0, similaritySum, basicInfoSimilarity, educationSimilarity, workExperienceSimilarity));
+		}
+
+		return results;
+	}
+
 
 }
