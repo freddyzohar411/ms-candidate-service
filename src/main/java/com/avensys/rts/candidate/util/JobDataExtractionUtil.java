@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import java.util.HashSet;
+
 public class JobDataExtractionUtil {
 
 	public static void printJSON(JsonNode jobData) {
@@ -79,6 +81,89 @@ public class JobDataExtractionUtil {
 
 		}
 		return details.toString();
+	}
+
+	public static HashSet<String> extractJobQualifications(JsonNode jobData) {
+		HashSet<String> qualifications = new HashSet<>();
+		JsonNode jobInfo = jobData.get("jobInfo");
+		if (jobInfo != null) { // Check if basicInfo is not null
+
+			// Qualification
+			if (jobInfo.has("qualification")) {
+				String qualification = jobInfo.get("qualification").asText("");
+				if (!qualification.isEmpty()) {
+					qualifications.add(qualification);
+				}
+			}
+		}
+		return qualifications;
+	}
+
+	public static HashSet<String> extractJobLanguages(JsonNode jobData) {
+		HashSet<String> languages = new HashSet<>();
+		JsonNode jobInfo = jobData.get("jobInfo");
+		if (jobInfo != null) { // Check if basicInfo is not null
+			// Languages is only a text
+			if (jobInfo.has("languages")) {
+				String language = jobInfo.get("languages").asText("");
+				// Check if it is comma seperated. If it is split and add to the set. Else just
+				// add it to the set
+				if (language.contains(",")) {
+					String[] lang = language.split(",");
+					for (String l : lang) {
+						languages.add(l);
+					}
+				} else {
+					languages.add(language);
+				}
+			}
+		}
+		return languages;
+	}
+
+	public static HashSet<String> extractJobDescription(JsonNode jobData) {
+		HashSet<String> jobDescriptions = new HashSet<>();
+		JsonNode jobInfo = jobData.get("jobInfo");
+		if (jobInfo != null) { // Check if basicInfo is not null
+			// Job Description
+			if (jobInfo.has("Jobdescription")) {
+				String jobDescription = jobInfo.get("Jobdescription").asText("");
+				if (!jobDescription.isEmpty()) {
+					jobDescriptions.add(jobDescription);
+				}
+			}
+		}
+		return jobDescriptions;
+	}
+
+	public static HashSet extractJobTitle(JsonNode jobData) {
+		HashSet<String> jobTitles = new HashSet<>();
+		JsonNode jobInfo = jobData.get("jobInfo");
+		if (jobInfo != null) { // Check if basicInfo is not null
+			// Job Title
+			if (jobInfo.has("jobTitle")) {
+				String jobTitle = jobInfo.get("jobTitle").asText("");
+				if (!jobTitle.isEmpty()) {
+					jobTitles.add(jobTitle);
+				}
+			}
+		}
+		return jobTitles;
+	}
+
+	public static HashSet<String> extractJobCountry(JsonNode jobData) {
+		HashSet<String> jobCountries = new HashSet<>();
+		JsonNode jobInfo = jobData.get("jobInfo");
+		if (jobInfo != null) { // Check if basicInfo is not null
+			// Job Country
+			if (jobInfo.has("jobCountry")) {
+				String jobCountry = jobInfo.get("jobCountry").asText("");
+				if (!jobCountry.isEmpty()) {
+					jobCountries.add(jobCountry);
+				}
+			}
+		}
+		return jobCountries;
 	}
 
 }

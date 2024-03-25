@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public class CandidateDataExtractionUtil {
 
@@ -245,6 +246,127 @@ public class CandidateDataExtractionUtil {
 		details.append(extractEducationDetails(candidate));
 		details.append(extractWorkExperienceDetails(candidate));
 		return details.toString();
+	}
+
+	// Extract the candidate skills in a Set<String> format
+	public static HashSet<String> extractCandidateSkillsSet(JsonNode candidate) {
+		HashSet<String> skillsSet = new HashSet<>();
+		JsonNode basicInfo = candidate.get("basicInfo");
+		if (basicInfo != null) { // Check if basicInfo is not null
+
+			List<String> skillKeys = Arrays.asList("primarySkill", "primarySkills", "skill1", "skill2", "skill3",
+					"secondarySkill", "secondarySkills");
+			for (String key : skillKeys) {
+				if (basicInfo.has(key) && !basicInfo.get(key).asText().isEmpty()) {
+					// Check if it is comma seperated. If it is split and add to the set. Else just
+					// add it to the set
+					if (basicInfo.get(key).asText().contains(",")) {
+						String[] skills = basicInfo.get(key).asText().split(",");
+						for (String skill : skills) {
+							skillsSet.add(skill.trim());
+						}
+					} else {
+						skillsSet.add(basicInfo.get(key).asText().trim());
+					}
+				}
+			}
+		}
+		return skillsSet;
+	}
+
+	public static HashSet<String> extractCandidateLanguagesSet(JsonNode candidate) {
+		HashSet<String> languagesSet = new HashSet<>();
+		JsonNode languages = candidate.get("languages");
+		if (languages != null && languages.isArray() && languages.size() > 0) {
+			for (JsonNode languageNode : languages) {
+				if (languageNode.has("language") && !languageNode.get("language").asText().isEmpty()) {
+					languagesSet.add(languageNode.get("language").asText());
+				}
+			}
+		}
+		return languagesSet;
+	}
+
+	public static HashSet<String> extractCandidateWorkTitlesSet(JsonNode candidate) {
+		HashSet<String> workTitlesSet = new HashSet<>();
+		JsonNode workExperiences = candidate.get("workExperiences");
+		if (workExperiences != null && workExperiences.isArray()) { // Check if workExperiences is not null and is an
+			// array
+			for (JsonNode item : workExperiences) {
+				String title = item.has("title") ? item.get("title").asText("") : "";
+				if (!title.isEmpty()) {
+					workTitlesSet.add(title);
+				}
+			}
+		}
+		return workTitlesSet;
+	}
+
+	public static HashSet<String> extractCandidateEducationQualificationsSet(JsonNode candidate) {
+		HashSet<String> qualificationsSet = new HashSet<>();
+		JsonNode educationDetails = candidate.get("educationDetails");
+		if (educationDetails != null && educationDetails.isArray()) {
+			for (JsonNode item : educationDetails) {
+				String qualification = item.has("qualification") ? item.get("qualification").asText("") : "";
+				if (!qualification.isEmpty()) {
+					qualificationsSet.add(qualification);
+				}
+			}
+		}
+
+//		// Define synonyms for each qualification type
+//		Map<String, Set<String>> qualificationSynonyms = new HashMap<>();
+//		qualificationSynonyms.put("bachelor", new HashSet<>(Arrays.asList("BSc", "BA", "BS", "BEng", "BTech")));
+//		qualificationSynonyms.put("master", new HashSet<>(Arrays.asList("MSc", "MA", "MS", "MEng", "MTech")));
+//		qualificationSynonyms.put("diploma", new HashSet<>(Arrays.asList("Dip")));
+//		qualificationSynonyms.put("phd", new HashSet<>(Arrays.asList("Ph.D", "Doctorate")));
+//		qualificationSynonyms.put("doctorate", new HashSet<>(Arrays.asList("Ph.D", "Doctorate")));
+//		qualificationSynonyms.put("certification", new HashSet<>(Arrays.asList("Cert")));
+//		// Add more mappings as necessary
+//
+//		// Initialize a new set to store qualification synonyms
+//		HashSet<String> qualificationSynonymsSet = new HashSet<>();
+//
+//		// Generate synonyms for each found qualification and add them to the set
+//		for (String qualification : qualificationsSet) {
+//			for (String type : qualificationSynonyms.keySet()) {
+//				if (qualification.toLowerCase().contains(type)) {
+//					// Add all synonyms of the type
+//					for (String synonym : qualificationSynonyms.get(type)) {
+//						// Replace the original type in the qualification with its synonym
+//						String modifiedQualification = qualification.replaceFirst("(?i)" + type, synonym);
+//						qualificationSynonymsSet.add(modifiedQualification);
+//					}
+//				}
+//			}
+//		}
+//
+//		// Add the synonyms to the original qualifications set
+//		qualificationsSet.addAll(qualificationSynonymsSet);
+
+		// Extract out qualification types and add them into the set
+		HashSet<String> qualificationTypesSet = new HashSet<>();
+		Set<String> qualificationTypes = new HashSet<>(
+				Arrays.asList("diploma", "bachelor", "master", "phd", "doctorate", "certification", "btech", "mtech"));
+		for (String qualification : qualificationsSet) {
+			for (String type : qualificationTypes) {
+				if (qualification.toLowerCase().contains(type)) {
+					qualificationTypesSet.add(type);
+				}
+			}
+		}
+
+		// Add the qualification types to the qualifications set
+		qualificationsSet.addAll(qualificationTypesSet);
+		return qualificationsSet;
+	}
+
+	public static String extractCandidateNationality(JsonNode candidate) {
+		JsonNode basicInfo = candidate.get("basicInfo");
+		if (basicInfo != null && basicInfo.has("candidateNationality")) {
+			return basicInfo.get("candidateNationality").asText();
+		}
+		return "";
 	}
 
 }

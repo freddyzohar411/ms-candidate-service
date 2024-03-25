@@ -449,9 +449,17 @@ public class CandidateServiceImpl implements CandidateService {
 
 		// Convert HashMap to JSON String
 		JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(candidateHashMapData);
+		CandidateDataExtractionUtil.printJSON(candidateDataJsonNode);
 
 		String candidateDetails = CandidateDataExtractionUtil.extractAllDetails(candidateDataJsonNode);
 		System.out.println("Candidate Details: " + candidateDetails);
+
+		// Extract out to check
+		System.out.println("Candidate Skills: " + CandidateDataExtractionUtil.extractCandidateSkillsSet(candidateDataJsonNode));
+		System.out.println("Candidate Languages: " + CandidateDataExtractionUtil.extractCandidateLanguagesSet(candidateDataJsonNode));
+		System.out.println("Candidate Job Titles:" + CandidateDataExtractionUtil.extractCandidateWorkTitlesSet(candidateDataJsonNode));
+		System.out.println("Candidate Education: " + CandidateDataExtractionUtil.extractCandidateEducationQualificationsSet(candidateDataJsonNode));
+		System.out.println("Candidate Nationality: " + CandidateDataExtractionUtil.extractCandidateNationality(candidateDataJsonNode));
 
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
 		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(candidateDetails));
@@ -720,6 +728,15 @@ public class CandidateServiceImpl implements CandidateService {
 		JobDataExtractionUtil.printJSON(jobJsonNode);
 		String jobDescription = JobDataExtractionUtil.extractJobInfo(jobJsonNode);
 		System.out.println("Job Description: " + jobDescription);
+
+		// Get job extracted data
+		System.out.println("Job Title: " + JobDataExtractionUtil.extractJobTitle(jobJsonNode));
+		System.out.println("Job Qualifications: " + JobDataExtractionUtil.extractJobQualifications(jobJsonNode));
+		System.out.println("Job Country: " + JobDataExtractionUtil.extractJobCountry(jobJsonNode));
+		System.out.println("Job Languages: " + JobDataExtractionUtil.extractJobLanguages(jobJsonNode));
+		System.out.println("Job Description 2: " + JobDataExtractionUtil.extractJobDescription(jobJsonNode));
+
+
 
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
 		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(jobDescription));
