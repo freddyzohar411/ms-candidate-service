@@ -26,7 +26,5 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity,Integ
 
 	@Query(value = "SELECT c FROM candidate c WHERE c.id = ?1 AND c.isDraft = ?2 AND c.isActive = ?3")
 	Optional<CandidateEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
-	
-	
 
 }
