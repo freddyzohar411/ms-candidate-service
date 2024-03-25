@@ -1,6 +1,7 @@
 package com.avensys.rts.candidate.payloadnewrequest;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EmbeddingListCompareRequestDTO {
-	private List<String> jobAttributes;
-	private List<String> candidateAttributes;
+	private Set<String> jobAttributes;
+	private Set<String> candidateAttributes;
 }

@@ -274,13 +274,37 @@ public class CandidateDataExtractionUtil {
 		return skillsSet;
 	}
 
+//	public static HashSet<String> extractCandidateLanguagesSet(JsonNode candidate) {
+//		HashSet<String> languagesSet = new HashSet<>();
+//		JsonNode languages = candidate.get("languages");
+//		if (languages != null && languages.isArray() && languages.size() > 0) {
+//			for (JsonNode languageNode : languages) {
+//				if (languageNode.has("language") && !languageNode.get("language").asText().isEmpty()) {
+//					languagesSet.add(languageNode.get("language").asText());
+//				}
+//			}
+//		}
+//		return languagesSet;
+//	}
+
 	public static HashSet<String> extractCandidateLanguagesSet(JsonNode candidate) {
+		// Add Synonyms for languages
+		Map<String, String> languageSynonyms = new HashMap<>();
+		languageSynonyms.put("mandarin", "chinese");
+		languageSynonyms.put("chinese", "mandarin");
+
 		HashSet<String> languagesSet = new HashSet<>();
 		JsonNode languages = candidate.get("languages");
 		if (languages != null && languages.isArray() && languages.size() > 0) {
 			for (JsonNode languageNode : languages) {
 				if (languageNode.has("language") && !languageNode.get("language").asText().isEmpty()) {
-					languagesSet.add(languageNode.get("language").asText());
+					String language = languageNode.get("language").asText();
+					// Check if the language is a synonym, if yes, get its main language
+					if (languageSynonyms.containsKey(language)) {
+						languagesSet.add(languageSynonyms.get(language));
+					} else {
+						languagesSet.add(language);
+					}
 				}
 			}
 		}

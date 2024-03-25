@@ -3,6 +3,7 @@ package com.avensys.rts.candidate.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
@@ -35,7 +36,8 @@ public interface CandidateService {
 	
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean getAll);
 
-	Page<CandidateEntityWithSimilarity> getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO);
+	Page<CandidateEntityWithSimilarity> getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
+			throws ExecutionException, InterruptedException;
 
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 	

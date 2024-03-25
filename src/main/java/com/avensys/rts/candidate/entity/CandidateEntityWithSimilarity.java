@@ -23,6 +23,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CandidateEntityWithSimilarity extends CandidateEntity {
 	private Double similarityScore;
+	private Double qualificationScore;
+	private JsonNode qualificationScoreDetails;
+	private Double languageScore;
+	private JsonNode languageScoreDetails;
 
 	public CandidateEntityWithSimilarity(CandidateEntity candidateEntity, Double similarityScore) {
 		this.setId(candidateEntity.getId());

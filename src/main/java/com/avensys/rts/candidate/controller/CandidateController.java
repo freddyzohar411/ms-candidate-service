@@ -1,6 +1,7 @@
 package com.avensys.rts.candidate.controller;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.enums.Permission;
@@ -207,15 +208,27 @@ public class CandidateController {
 		LOG.info("Candidate get all fields: Controller");
 		String searchTerm = candidateListingRequestDTO.getSearchTerm();
 		if (searchTerm == null || searchTerm.isEmpty()) {
+			try {
+				return ResponseUtil.generateSuccessResponse(
+						candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
+						HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+								LocaleContextHolder.getLocale()));
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		try {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
-					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-							LocaleContextHolder.getLocale()));
+					HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
-		return ResponseUtil.generateSuccessResponse(
-				candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
-				HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
