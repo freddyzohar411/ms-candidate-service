@@ -77,9 +77,10 @@ public class CandidateServiceImpl implements CandidateService {
 		LOG.info("Candidate create : Service");
 		System.out.println("createCandidate" + candidateRequestDTO);
 		String email = getEmailFromRequest(candidateRequestDTO);
-		if (candidateRepository.existsByEmail(email)) {
+		if (candidateRepository.existsByEmailAndNotDeleted(email)) {
 			throw new ServiceException(
-					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));		}
+					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
 		System.out.println("Candidate ID: " + candidateEntity.getId());
 
@@ -183,6 +184,13 @@ public class CandidateServiceImpl implements CandidateService {
 		// Get candidate data from candidate microservice
 		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+
+		String email = getEmailFromRequest(candidateRequestDTO);
+		if (candidateRepository.existsByEmailAndNotDeleted(email)) {
+			throw new ServiceException(
+					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+		}
+
 		// Update candidate data
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
 		candidateEntity.setLastName(candidateRequestDTO.getLastName());
@@ -317,6 +325,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get candidate data, only basic info
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -329,6 +338,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	/**
 	 * Get all candidate data including all related microservices
+	 * 
 	 * @param candidateId
 	 * @return
 	 */
@@ -388,8 +398,9 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	/**
-	 * Get all the fields for all the forms in the candidate service
-	 * including all related microservices
+	 * Get all the fields for all the forms in the candidate service including all
+	 * related microservices
+	 * 
 	 * @return
 	 */
 	@Override
@@ -441,8 +452,8 @@ public class CandidateServiceImpl implements CandidateService {
 		// Get Documents Fields
 		CandidateResponseDTO.HttpResponse documents = formSubmissionAPIClient
 				.getFormFieldNameList("candidate_documents");
-		List<HashMap<String, String>> documentsFields = MappingUtil
-				.mapClientBodyToClass(documents.getData(), List.class);
+		List<HashMap<String, String>> documentsFields = MappingUtil.mapClientBodyToClass(documents.getData(),
+				List.class);
 		allFields.put("documents", documentsFields);
 
 		return allFields;
@@ -566,11 +577,11 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
+					pageRequest);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(
-					userIds, false, false, true, pageRequest);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
+					pageRequest);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -594,11 +605,11 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
+					false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
