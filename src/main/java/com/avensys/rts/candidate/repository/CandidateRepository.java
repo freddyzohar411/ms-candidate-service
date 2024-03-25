@@ -34,4 +34,10 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity,Integ
 			"WHERE candidate_submission_data ->> 'email' = :email)", nativeQuery = true)
 	Boolean existsByEmail(@Param("email") String email);
 
+	// Check if email exists in candidate_submission_data.email and is not deleted
+	@Query(value = "SELECT EXISTS(" +
+			"SELECT 1 FROM candidate " +
+			"WHERE candidate_submission_data ->> 'email' = :email AND is_deleted = false)", nativeQuery = true)
+	Boolean existsByEmailAndNotDeleted(@Param("email") String email);
+
 }
