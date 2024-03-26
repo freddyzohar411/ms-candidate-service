@@ -10,11 +10,8 @@ import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.*;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import org.springframework.data.domain.Page;
 
 public interface CandidateService {
@@ -36,7 +33,7 @@ public interface CandidateService {
 	
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean getAll);
 
-	Page<CandidateEntityWithSimilarity> getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
 			throws ExecutionException, InterruptedException;
 
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);

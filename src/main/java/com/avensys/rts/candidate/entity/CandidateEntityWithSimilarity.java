@@ -27,6 +27,13 @@ public class CandidateEntityWithSimilarity extends CandidateEntity {
 	private JsonNode qualificationScoreDetails;
 	private Double languageScore;
 	private JsonNode languageScoreDetails;
+	private Double skillsScore;
+	private JsonNode skillsScoreDetails;
+	private Double jobTitleScore;
+	private JsonNode jobTitleScoreDetails;
+	private Double jobCountryScore;
+	private String jobCountryScoreDetails;
+	private Double computedScore;
 
 	public CandidateEntityWithSimilarity(CandidateEntity candidateEntity, Double similarityScore) {
 		this.setId(candidateEntity.getId());
@@ -40,7 +47,6 @@ public class CandidateEntityWithSimilarity extends CandidateEntity {
 		this.setFormSubmissionId(candidateEntity.getFormSubmissionId());
 		this.setCandidateSubmissionData(candidateEntity.getCandidateSubmissionData());
 		this.setCreatedByUserGroupsId(candidateEntity.getCreatedByUserGroupsId());
-
 		this.similarityScore = similarityScore;
 	}
 }

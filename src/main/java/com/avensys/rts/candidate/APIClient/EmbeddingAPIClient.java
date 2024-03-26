@@ -1,6 +1,7 @@
 package com.avensys.rts.candidate.APIClient;
 
 import com.avensys.rts.candidate.payloadnewrequest.EmbeddingListCompareRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.EmbeddingListTextCompareRequestDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -33,4 +34,6 @@ public interface EmbeddingAPIClient {
 	@PostMapping("/compare/list")
 	CandidateResponseDTO.HttpResponse compareEmbeddingsList(@RequestBody EmbeddingListCompareRequestDTO embeddingListCompareRequestDTO);
 
+	@PostMapping("/compare/list-text")
+	CandidateResponseDTO.HttpResponse compareEmbeddingsListText(@RequestBody EmbeddingListTextCompareRequestDTO embeddingListTextCompareRequestDTO);
 }

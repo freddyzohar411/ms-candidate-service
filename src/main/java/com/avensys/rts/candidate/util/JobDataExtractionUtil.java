@@ -121,7 +121,7 @@ public class JobDataExtractionUtil {
 		return languages;
 	}
 
-	public static HashSet<String> extractJobDescription(JsonNode jobData) {
+	public static String extractJobDescription(JsonNode jobData) {
 		HashSet<String> jobDescriptions = new HashSet<>();
 		JsonNode jobInfo = jobData.get("jobInfo");
 		if (jobInfo != null) { // Check if basicInfo is not null
@@ -129,11 +129,13 @@ public class JobDataExtractionUtil {
 			if (jobInfo.has("Jobdescription")) {
 				String jobDescription = jobInfo.get("Jobdescription").asText("");
 				if (!jobDescription.isEmpty()) {
-					jobDescriptions.add(jobDescription);
+//					jobDescriptions.add(jobDescription);
+					return jobDescription;
 				}
 			}
 		}
-		return jobDescriptions;
+//		return jobDescriptions;
+		return "";
 	}
 
 	public static HashSet extractJobTitle(JsonNode jobData) {
@@ -151,7 +153,7 @@ public class JobDataExtractionUtil {
 		return jobTitles;
 	}
 
-	public static HashSet<String> extractJobCountry(JsonNode jobData) {
+	public static String extractJobCountry(JsonNode jobData) {
 		HashSet<String> jobCountries = new HashSet<>();
 		JsonNode jobInfo = jobData.get("jobInfo");
 		if (jobInfo != null) { // Check if basicInfo is not null
@@ -159,11 +161,11 @@ public class JobDataExtractionUtil {
 			if (jobInfo.has("jobCountry")) {
 				String jobCountry = jobInfo.get("jobCountry").asText("");
 				if (!jobCountry.isEmpty()) {
-					jobCountries.add(jobCountry);
+					return jobCountry;
 				}
 			}
 		}
-		return jobCountries;
+		return "";
 	}
 
 }
