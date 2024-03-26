@@ -718,12 +718,18 @@ public class CandidateServiceImpl implements CandidateService {
 				.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false, false,
 						true, pageRequest, jobEmbedding);
 
+//		HashMap<String, Double> weightage = new HashMap<>();
+//		weightage.put("jobQualifications", 0.15);
+//		weightage.put("jobLanguages", 0.15);
+//		weightage.put("jobSkills", 0.5);
+//		weightage.put("jobTitles", 0.15);
+//		weightage.put("jobCountry", 0.05);
+
 		HashMap<String, Double> weightage = new HashMap<>();
-		weightage.put("jobQualifications", 0.15);
-		weightage.put("jobLanguages", 0.15);
-		weightage.put("jobSkills", 0.5);
-		weightage.put("jobTitles", 0.15);
-		weightage.put("jobCountry", 0.05);
+		weightage.put("jobQualifications", 0.20);
+		weightage.put("jobLanguages", 0.35);
+		weightage.put("jobTitles", 0.35);
+		weightage.put("jobCountry", 0.1);
 
 		// Evaluate candidate score individually
 //		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
@@ -867,10 +873,11 @@ public class CandidateServiceImpl implements CandidateService {
 					// Compute the final score with weightage
 					double finalScore = qualificationScore * weightage.get("jobQualifications")
 							+ languageScore * weightage.get("jobLanguages")
-							+ jobSkillsScore * weightage.get("jobSkills") + jobTitlesScore * weightage.get("jobTitles")
+//							+ jobSkillsScore * weightage.get("jobSkills")
+							+ jobTitlesScore * weightage.get("jobTitles")
 							+ jobCountryScore * weightage.get("jobCountry");
 
-					finalScore = similarityScore * 0.5 + finalScore * 0.5;
+					finalScore = similarityScore * 0.7 + finalScore * 0.3;
 
 					candidateEntityWithSimilarity.setComputedScore(finalScore);
 
@@ -887,8 +894,8 @@ public class CandidateServiceImpl implements CandidateService {
 		// Wait for all candidates to be processed
 		CompletableFuture.allOf(candidateFutures.toArray(new CompletableFuture[0])).join();
 
-		// Normalize the jobSkillsScore and replace the value in the
-		// candidateEntityWithSimilarityPage
+//		 Normalize the jobSkillsScore and replace the value in the
+//		 candidateEntityWithSimilarityPage
 //		double maxJobSkillsScore = candidateEntityWithSimilarityPage.getContent().stream()
 //				.mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).max().orElse(0.0);
 //		double minJobSkillsScore = candidateEntityWithSimilarityPage.getContent().stream()
@@ -911,6 +918,26 @@ public class CandidateServiceImpl implements CandidateService {
 //			candidateEntityWithSimilarity.setComputedScore(finalScore);
 //		}
 
+//		// Normal the skill similarity score based on the max and min length of matching skills
+//		double maxSkillsLength = candidateEntityWithSimilarityPage.getContent().stream()
+//				.mapToDouble(CandidateEntityWithSimilarity-> CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).max().orElse(0.0);
+//		double minSkillsLength = candidateEntityWithSimilarityPage.getContent().stream()
+//				.mapToDouble(CandidateEntityWithSimilarity-> CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).min().orElse(0.0);
+//		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
+//				.getContent()) {
+//			double normalizedSkillsLength = (candidateEntityWithSimilarity.getSkillsScoreDetails().size() - minSkillsLength)
+//					/ (maxSkillsLength - minSkillsLength);
+//			candidateEntityWithSimilarity.setSkillsScore(normalizedSkillsLength);
+//
+//			// Updated the computed score with weightage
+//			double finalScore = candidateEntityWithSimilarity.getQualificationScore()
+//					* weightage.get("jobQualifications")
+//					+ candidateEntityWithSimilarity.getLanguageScore() * weightage.get("jobLanguages")
+//					+ normalizedSkillsLength * weightage.get("jobSkills")
+//					+ candidateEntityWithSimilarity.getJobTitleScore() * weightage.get("jobTitles")
+//					+ candidateEntityWithSimilarity.getJobCountryScore() * weightage.get("jobCountry");
+//		}
+
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage);
 	}
 
@@ -924,7 +951,7 @@ public class CandidateServiceImpl implements CandidateService {
 		// Sort the content based on similarity score
 		List<CandidateEntityWithSimilarity> sortedList = candidateEntityWithSimilarityPage.getContent()
 				.stream()
-				.sorted(Comparator.comparingDouble(CandidateEntityWithSimilarity::getSimilarityScore).reversed())
+				.sorted(Comparator.comparingDouble(CandidateEntityWithSimilarity::getComputedScore).reversed())
 				.collect(Collectors.toList());
 
 		candidateSimilarityListingResponseDTO.setCandidates(sortedList);

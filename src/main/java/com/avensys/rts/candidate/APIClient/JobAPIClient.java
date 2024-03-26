@@ -16,4 +16,7 @@ import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 public interface JobAPIClient {
 	@GetMapping("/{jobId}/data/all")
 	CandidateResponseDTO.HttpResponse getJobByIdDataAll(@PathVariable Long jobId);
+
+	@GetMapping("/{jobId}/embeddings/get")
+	CandidateResponseDTO.HttpResponse getEmbeddingsById(@PathVariable Long jobId);
 }
