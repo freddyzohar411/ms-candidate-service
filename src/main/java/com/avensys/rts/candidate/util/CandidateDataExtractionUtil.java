@@ -308,6 +308,10 @@ public class CandidateDataExtractionUtil {
 				}
 			}
 		}
+		if (languagesSet.isEmpty()) {
+			// Add a default language if no languages are found
+			languagesSet.add("english");
+		}
 		return languagesSet;
 	}
 
