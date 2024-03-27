@@ -73,6 +73,9 @@ public interface CustomCandidateRepository {
 	Page<CandidateEntityWithSimilarity>findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds, Boolean
 			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable, List<Float> jobDescriptionVector);
 
+	Page<CandidateEntityWithSimilarity>findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(List<Long> userIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable, List<Float> jobDescriptionVector);
+
 	Page<CandidateEntity>findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds, Boolean
 			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable, List<Float> jobDescriptionVector);
 }

@@ -482,6 +482,16 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings",
 				candidateEmbeddingData.getEmbedding());
 
+		// OpenAI Embedding
+		EmbeddingRequestDTO openAIEmbeddingRequestDTO = new EmbeddingRequestDTO();
+		openAIEmbeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(candidateDetails));
+		CandidateResponseDTO.HttpResponse openAIEmbeddingResponse = embeddingAPIClient
+				.getEmbeddingSingle(openAIEmbeddingRequestDTO);
+		EmbeddingResponseDTO openAIEmbeddingData = MappingUtil.mapClientBodyToClass(openAIEmbeddingResponse.getData(),
+				EmbeddingResponseDTO.class);
+		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings_openai",
+				openAIEmbeddingData.getEmbedding());
+
 		return candidateHashMapData;
 	}
 
@@ -657,7 +667,6 @@ public class CandidateServiceImpl implements CandidateService {
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
 
-
 	@Override
 	public CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(
 			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException {
@@ -701,7 +710,7 @@ public class CandidateServiceImpl implements CandidateService {
 		String jobCountry = JobDataExtractionUtil.extractJobCountry(jobJsonNode);
 
 		// Get Job Embeddings
-		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = jobAPIClient.getEmbeddingsById(jobId);
+		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = jobAPIClient.getEmbeddingsById(jobId, "default");
 		EmbeddingResponseDTO jobEmbedding = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
 				EmbeddingResponseDTO.class);
 
@@ -709,12 +718,12 @@ public class CandidateServiceImpl implements CandidateService {
 				.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false, false,
 						true, pageRequest, jobEmbedding.getEmbedding());
 
-		//		HashMap<String, Double> weightage = new HashMap<>();
-		//		weightage.put("jobQualifications", 0.15);
-		//		weightage.put("jobLanguages", 0.15);
-		//		weightage.put("jobSkills", 0.5);
-		//		weightage.put("jobTitles", 0.15);
-		//		weightage.put("jobCountry", 0.05);
+		// HashMap<String, Double> weightage = new HashMap<>();
+		// weightage.put("jobQualifications", 0.15);
+		// weightage.put("jobLanguages", 0.15);
+		// weightage.put("jobSkills", 0.5);
+		// weightage.put("jobTitles", 0.15);
+		// weightage.put("jobCountry", 0.05);
 
 		HashMap<String, Double> weightage = new HashMap<>();
 		weightage.put("jobQualifications", 0.20);
@@ -723,48 +732,59 @@ public class CandidateServiceImpl implements CandidateService {
 		weightage.put("jobCountry", 0.1);
 
 		// Evaluate candidate score individually
-		//		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
-		//				.getContent()) {
-		//			// Get candidate qualification
-		//			JsonNode candidateDataJsonNode = MappingUtil
-		//					.convertHashMapToJsonNode(getCandidateByIdDataAll(candidateEntityWithSimilarity.getId()));
-		//			Set<String> candidateQualifications = CandidateDataExtractionUtil
-		//					.extractCandidateEducationQualificationsSet(candidateDataJsonNode);
-		//			// Get Similarity Score for job qualification
-		//			EmbeddingListCompareRequestDTO embeddingListCompareRequestDTO = new EmbeddingListCompareRequestDTO();
-		//			embeddingListCompareRequestDTO.setJobAttributes(jobQualifications);
-		//			embeddingListCompareRequestDTO.setCandidateAttributes(candidateQualifications);
-		//			CandidateResponseDTO.HttpResponse embeddingListCompareResponse = embeddingAPIClient
-		//					.compareEmbeddingsList(embeddingListCompareRequestDTO);
-		//			EmbeddingListCompareResponseDTO embeddingListCompareResponseDTO = MappingUtil
-		//					.mapClientBodyToClass(embeddingListCompareResponse.getData(), EmbeddingListCompareResponseDTO.class);
-		//			System.out.println("Candidate Qualification: " + candidateQualifications);
-		//			double qualificationScore = embeddingListCompareResponseDTO.getSimilar_attributes().size()
-		//					/ (double) jobQualifications.size();
-		//			System.out.println("Candidate Qualification Score: " + qualificationScore);
-		//			System.out.println("Candidate Qualification Similarity: " + embeddingListCompareResponseDTO.getSimilar_attributes().toString());
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// // Get candidate qualification
+		// JsonNode candidateDataJsonNode = MappingUtil
+		// .convertHashMapToJsonNode(getCandidateByIdDataAll(candidateEntityWithSimilarity.getId()));
+		// Set<String> candidateQualifications = CandidateDataExtractionUtil
+		// .extractCandidateEducationQualificationsSet(candidateDataJsonNode);
+		// // Get Similarity Score for job qualification
+		// EmbeddingListCompareRequestDTO embeddingListCompareRequestDTO = new
+		// EmbeddingListCompareRequestDTO();
+		// embeddingListCompareRequestDTO.setJobAttributes(jobQualifications);
+		// embeddingListCompareRequestDTO.setCandidateAttributes(candidateQualifications);
+		// CandidateResponseDTO.HttpResponse embeddingListCompareResponse =
+		// embeddingAPIClient
+		// .compareEmbeddingsList(embeddingListCompareRequestDTO);
+		// EmbeddingListCompareResponseDTO embeddingListCompareResponseDTO = MappingUtil
+		// .mapClientBodyToClass(embeddingListCompareResponse.getData(),
+		// EmbeddingListCompareResponseDTO.class);
+		// System.out.println("Candidate Qualification: " + candidateQualifications);
+		// double qualificationScore =
+		// embeddingListCompareResponseDTO.getSimilar_attributes().size()
+		// / (double) jobQualifications.size();
+		// System.out.println("Candidate Qualification Score: " + qualificationScore);
+		// System.out.println("Candidate Qualification Similarity: " +
+		// embeddingListCompareResponseDTO.getSimilar_attributes().toString());
 		//
-		//			// Get candidate languages
-		//			Set<String> candidateLanguages = CandidateDataExtractionUtil
-		//					.extractCandidateLanguagesSet(candidateDataJsonNode);
-		//			// Get Similarity Score for job languages
-		//			EmbeddingListCompareRequestDTO languageEmbeddingRequestDTO = new EmbeddingListCompareRequestDTO();
-		//			languageEmbeddingRequestDTO.setJobAttributes(jobLanguages);
-		//			languageEmbeddingRequestDTO.setCandidateAttributes(candidateLanguages);
-		//			CandidateResponseDTO.HttpResponse languageEmbeddingResponse = embeddingAPIClient
-		//					.compareEmbeddingsList(languageEmbeddingRequestDTO);
-		//			EmbeddingListCompareResponseDTO languageEmbeddingResponseDTO = MappingUtil
-		//					.mapClientBodyToClass(languageEmbeddingResponse.getData(), EmbeddingListCompareResponseDTO.class);
-		//			System.out.println("Candidate Languages: " + candidateLanguages);
-		//			double languageScore = languageEmbeddingResponseDTO.getSimilar_attributes().size()
-		//					/ (double) jobLanguages.size();
-		//			System.out.println("Candidate Language Score: " + languageScore);
-		//			System.out.println("Candidate Language Similarity: " + languageEmbeddingResponseDTO.getSimilar_attributes().toString());
+		// // Get candidate languages
+		// Set<String> candidateLanguages = CandidateDataExtractionUtil
+		// .extractCandidateLanguagesSet(candidateDataJsonNode);
+		// // Get Similarity Score for job languages
+		// EmbeddingListCompareRequestDTO languageEmbeddingRequestDTO = new
+		// EmbeddingListCompareRequestDTO();
+		// languageEmbeddingRequestDTO.setJobAttributes(jobLanguages);
+		// languageEmbeddingRequestDTO.setCandidateAttributes(candidateLanguages);
+		// CandidateResponseDTO.HttpResponse languageEmbeddingResponse =
+		// embeddingAPIClient
+		// .compareEmbeddingsList(languageEmbeddingRequestDTO);
+		// EmbeddingListCompareResponseDTO languageEmbeddingResponseDTO = MappingUtil
+		// .mapClientBodyToClass(languageEmbeddingResponse.getData(),
+		// EmbeddingListCompareResponseDTO.class);
+		// System.out.println("Candidate Languages: " + candidateLanguages);
+		// double languageScore =
+		// languageEmbeddingResponseDTO.getSimilar_attributes().size()
+		// / (double) jobLanguages.size();
+		// System.out.println("Candidate Language Score: " + languageScore);
+		// System.out.println("Candidate Language Similarity: " +
+		// languageEmbeddingResponseDTO.getSimilar_attributes().toString());
 		//
 		//
 		//
 		//
-		//		}
+		// }
 
 		// List to hold all CompletableFuture tasks for processing candidates
 
@@ -870,7 +890,7 @@ public class CandidateServiceImpl implements CandidateService {
 					// Compute the final score with weightage
 					double finalScore = qualificationScore * weightage.get("jobQualifications")
 							+ languageScore * weightage.get("jobLanguages")
-							//							+ jobSkillsScore * weightage.get("jobSkills")
+					// + jobSkillsScore * weightage.get("jobSkills")
 							+ jobTitlesScore * weightage.get("jobTitles")
 							+ jobCountryScore * weightage.get("jobCountry");
 
@@ -891,54 +911,384 @@ public class CandidateServiceImpl implements CandidateService {
 		// Wait for all candidates to be processed
 		CompletableFuture.allOf(candidateFutures.toArray(new CompletableFuture[0])).join();
 
-		//		 Normalize the jobSkillsScore and replace the value in the
-		//		 candidateEntityWithSimilarityPage
-		//		double maxJobSkillsScore = candidateEntityWithSimilarityPage.getContent().stream()
-		//				.mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).max().orElse(0.0);
-		//		double minJobSkillsScore = candidateEntityWithSimilarityPage.getContent().stream()
-		//				.mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).min().orElse(0.0);
-		//		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
-		//				.getContent()) {
-		//			double normalizedJobSkillsScore = (candidateEntityWithSimilarity.getSkillsScore() - minJobSkillsScore)
-		//					/ (maxJobSkillsScore - minJobSkillsScore);
-		//			candidateEntityWithSimilarity.setSkillsScore(normalizedJobSkillsScore);
+		// Normalize the jobSkillsScore and replace the value in the
+		// candidateEntityWithSimilarityPage
+		// double maxJobSkillsScore =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).max().orElse(0.0);
+		// double minJobSkillsScore =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).min().orElse(0.0);
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// double normalizedJobSkillsScore =
+		// (candidateEntityWithSimilarity.getSkillsScore() - minJobSkillsScore)
+		// / (maxJobSkillsScore - minJobSkillsScore);
+		// candidateEntityWithSimilarity.setSkillsScore(normalizedJobSkillsScore);
 		//
-		//			// Updated the computed score with weightage
-		//			double finalScore = candidateEntityWithSimilarity.getQualificationScore()
-		//					* weightage.get("jobQualifications")
-		//					+ candidateEntityWithSimilarity.getLanguageScore() * weightage.get("jobLanguages")
-		//					+ normalizedJobSkillsScore * weightage.get("jobSkills")
-		//					+ candidateEntityWithSimilarity.getJobTitleScore() * weightage.get("jobTitles")
-		//					+ candidateEntityWithSimilarity.getJobCountryScore() * weightage.get("jobCountry");
+		// // Updated the computed score with weightage
+		// double finalScore = candidateEntityWithSimilarity.getQualificationScore()
+		// * weightage.get("jobQualifications")
+		// + candidateEntityWithSimilarity.getLanguageScore() *
+		// weightage.get("jobLanguages")
+		// + normalizedJobSkillsScore * weightage.get("jobSkills")
+		// + candidateEntityWithSimilarity.getJobTitleScore() *
+		// weightage.get("jobTitles")
+		// + candidateEntityWithSimilarity.getJobCountryScore() *
+		// weightage.get("jobCountry");
 		//
-		//			finalScore = candidateEntityWithSimilarity.getSimilarityScore() * 0.7 + finalScore * 0.3;
-		//			candidateEntityWithSimilarity.setComputedScore(finalScore);
-		//		}
+		// finalScore = candidateEntityWithSimilarity.getSimilarityScore() * 0.7 +
+		// finalScore * 0.3;
+		// candidateEntityWithSimilarity.setComputedScore(finalScore);
+		// }
 
-		//		// Normal the skill similarity score based on the max and min length of matching skills
-		//		double maxSkillsLength = candidateEntityWithSimilarityPage.getContent().stream()
-		//				.mapToDouble(CandidateEntityWithSimilarity-> CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).max().orElse(0.0);
-		//		double minSkillsLength = candidateEntityWithSimilarityPage.getContent().stream()
-		//				.mapToDouble(CandidateEntityWithSimilarity-> CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).min().orElse(0.0);
-		//		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
-		//				.getContent()) {
-		//			double normalizedSkillsLength = (candidateEntityWithSimilarity.getSkillsScoreDetails().size() - minSkillsLength)
-		//					/ (maxSkillsLength - minSkillsLength);
-		//			candidateEntityWithSimilarity.setSkillsScore(normalizedSkillsLength);
+		// // Normal the skill similarity score based on the max and min length of
+		// matching skills
+		// double maxSkillsLength =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity->
+		// CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).max().orElse(0.0);
+		// double minSkillsLength =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity->
+		// CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).min().orElse(0.0);
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// double normalizedSkillsLength =
+		// (candidateEntityWithSimilarity.getSkillsScoreDetails().size() -
+		// minSkillsLength)
+		// / (maxSkillsLength - minSkillsLength);
+		// candidateEntityWithSimilarity.setSkillsScore(normalizedSkillsLength);
 		//
-		//			// Updated the computed score with weightage
-		//			double finalScore = candidateEntityWithSimilarity.getQualificationScore()
-		//					* weightage.get("jobQualifications")
-		//					+ candidateEntityWithSimilarity.getLanguageScore() * weightage.get("jobLanguages")
-		//					+ normalizedSkillsLength * weightage.get("jobSkills")
-		//					+ candidateEntityWithSimilarity.getJobTitleScore() * weightage.get("jobTitles")
-		//					+ candidateEntityWithSimilarity.getJobCountryScore() * weightage.get("jobCountry");
-		//		}
+		// // Updated the computed score with weightage
+		// double finalScore = candidateEntityWithSimilarity.getQualificationScore()
+		// * weightage.get("jobQualifications")
+		// + candidateEntityWithSimilarity.getLanguageScore() *
+		// weightage.get("jobLanguages")
+		// + normalizedSkillsLength * weightage.get("jobSkills")
+		// + candidateEntityWithSimilarity.getJobTitleScore() *
+		// weightage.get("jobTitles")
+		// + candidateEntityWithSimilarity.getJobCountryScore() *
+		// weightage.get("jobCountry");
+		// }
 
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage);
 	}
 
-	private CandidateSimilarityListingResponseDTO candidateSimilarityPageToCandidateSimilarityListingResponse(Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage) {
+	@Override
+	public CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchOpenai(
+			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException {
+		Integer page = candidateListingRequestDTO.getPage();
+		Integer size = candidateListingRequestDTO.getPageSize();
+		String sortBy = candidateListingRequestDTO.getSortBy();
+		String sortDirection = candidateListingRequestDTO.getSortDirection();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		Long jobId = candidateListingRequestDTO.getJobId();
+		System.out.println("Job Id: " + jobId);
+		System.out.println("Page: " + page);
+		System.out.println("PageSize: " + size);
+		System.out.println("SortBy: " + sortBy);
+		System.out.println("SortDirection: " + sortDirection);
+		System.out.println("SearchTerm: " + searchTerm);
+
+		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+		if (sortDirection != null && !sortDirection.isEmpty()) {
+			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+		}
+		if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
+			sortBy = "cosine_similarity";
+			direction = Sort.Direction.DESC;
+		}
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		// Get the job data
+		CandidateResponseDTO.HttpResponse jobResponse = jobAPIClient.getJobByIdDataAll(jobId);
+		HashMap<String, Object> jobData = MappingUtil.mapClientBodyToClass(jobResponse.getData(), HashMap.class);
+		JsonNode jobJsonNode = MappingUtil.convertHashMapToJsonNode(jobData);
+		JobDataExtractionUtil.printJSON(jobJsonNode);
+		String jobDataAll = JobDataExtractionUtil.extractJobInfo(jobJsonNode);
+		System.out.println("Job Data All: " + jobDataAll);
+
+		// Get job extracted data
+		Set<String> jobQualifications = JobDataExtractionUtil.extractJobQualifications(jobJsonNode);
+		System.out.println("Job Qualifications: " + jobQualifications);
+		Set<String> jobLanguages = JobDataExtractionUtil.extractJobLanguages(jobJsonNode);
+		String jobDescription = JobDataExtractionUtil.extractJobDescription(jobJsonNode);
+		Set<String> jobTitles = JobDataExtractionUtil.extractJobTitle(jobJsonNode);
+		String jobCountry = JobDataExtractionUtil.extractJobCountry(jobJsonNode);
+
+		// Get Job Embeddings
+		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = jobAPIClient.getEmbeddingsById(jobId, "openai");
+		EmbeddingResponseDTO jobEmbedding = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
+				EmbeddingResponseDTO.class);
+
+		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = candidateRepository
+				.findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(userUtil.getUsersIdUnderManager(), false, false,
+						true, pageRequest, jobEmbedding.getEmbedding());
+
+		// HashMap<String, Double> weightage = new HashMap<>();
+		// weightage.put("jobQualifications", 0.15);
+		// weightage.put("jobLanguages", 0.15);
+		// weightage.put("jobSkills", 0.5);
+		// weightage.put("jobTitles", 0.15);
+		// weightage.put("jobCountry", 0.05);
+
+		HashMap<String, Double> weightage = new HashMap<>();
+		weightage.put("jobQualifications", 0.20);
+		weightage.put("jobLanguages", 0.35);
+		weightage.put("jobTitles", 0.35);
+		weightage.put("jobCountry", 0.1);
+
+		// Evaluate candidate score individually
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// // Get candidate qualification
+		// JsonNode candidateDataJsonNode = MappingUtil
+		// .convertHashMapToJsonNode(getCandidateByIdDataAll(candidateEntityWithSimilarity.getId()));
+		// Set<String> candidateQualifications = CandidateDataExtractionUtil
+		// .extractCandidateEducationQualificationsSet(candidateDataJsonNode);
+		// // Get Similarity Score for job qualification
+		// EmbeddingListCompareRequestDTO embeddingListCompareRequestDTO = new
+		// EmbeddingListCompareRequestDTO();
+		// embeddingListCompareRequestDTO.setJobAttributes(jobQualifications);
+		// embeddingListCompareRequestDTO.setCandidateAttributes(candidateQualifications);
+		// CandidateResponseDTO.HttpResponse embeddingListCompareResponse =
+		// embeddingAPIClient
+		// .compareEmbeddingsList(embeddingListCompareRequestDTO);
+		// EmbeddingListCompareResponseDTO embeddingListCompareResponseDTO = MappingUtil
+		// .mapClientBodyToClass(embeddingListCompareResponse.getData(),
+		// EmbeddingListCompareResponseDTO.class);
+		// System.out.println("Candidate Qualification: " + candidateQualifications);
+		// double qualificationScore =
+		// embeddingListCompareResponseDTO.getSimilar_attributes().size()
+		// / (double) jobQualifications.size();
+		// System.out.println("Candidate Qualification Score: " + qualificationScore);
+		// System.out.println("Candidate Qualification Similarity: " +
+		// embeddingListCompareResponseDTO.getSimilar_attributes().toString());
+		//
+		// // Get candidate languages
+		// Set<String> candidateLanguages = CandidateDataExtractionUtil
+		// .extractCandidateLanguagesSet(candidateDataJsonNode);
+		// // Get Similarity Score for job languages
+		// EmbeddingListCompareRequestDTO languageEmbeddingRequestDTO = new
+		// EmbeddingListCompareRequestDTO();
+		// languageEmbeddingRequestDTO.setJobAttributes(jobLanguages);
+		// languageEmbeddingRequestDTO.setCandidateAttributes(candidateLanguages);
+		// CandidateResponseDTO.HttpResponse languageEmbeddingResponse =
+		// embeddingAPIClient
+		// .compareEmbeddingsList(languageEmbeddingRequestDTO);
+		// EmbeddingListCompareResponseDTO languageEmbeddingResponseDTO = MappingUtil
+		// .mapClientBodyToClass(languageEmbeddingResponse.getData(),
+		// EmbeddingListCompareResponseDTO.class);
+		// System.out.println("Candidate Languages: " + candidateLanguages);
+		// double languageScore =
+		// languageEmbeddingResponseDTO.getSimilar_attributes().size()
+		// / (double) jobLanguages.size();
+		// System.out.println("Candidate Language Score: " + languageScore);
+		// System.out.println("Candidate Language Similarity: " +
+		// languageEmbeddingResponseDTO.getSimilar_attributes().toString());
+		//
+		//
+		//
+		//
+		// }
+
+		// List to hold all CompletableFuture tasks for processing candidates
+
+		// Pre-fetch all candidate data before asynchronous processing
+
+		List<CompletableFuture<Void>> candidateFutures = new ArrayList<>();
+		Map<Integer, JsonNode> preFetchedCandidateData = new HashMap<>();
+		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
+				.getContent()) {
+			// Fetching candidate data once here, outside of the asynchronous tasks
+			JsonNode candidateDataJsonNode = MappingUtil
+					.convertHashMapToJsonNode(getCandidateByIdDataAll(candidateEntityWithSimilarity.getId()));
+			preFetchedCandidateData.put(candidateEntityWithSimilarity.getId(), candidateDataJsonNode);
+		}
+
+		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidateEntityWithSimilarityPage
+				.getContent()) {
+			// Now pass the pre-fetched data to each asynchronous task
+			JsonNode candidateDataJsonNode = preFetchedCandidateData.get(candidateEntityWithSimilarity.getId());
+
+			// Submit each candidate's processing as a separate asynchronous task
+			CompletableFuture<Void> candidateFuture = CompletableFuture.runAsync(() -> {
+				// Use pre-fetched data for processing
+				Set<String> candidateQualifications = CandidateDataExtractionUtil
+						.extractCandidateEducationQualificationsSet(candidateDataJsonNode);
+				Set<String> candidateLanguages = CandidateDataExtractionUtil
+						.extractCandidateLanguagesSet(candidateDataJsonNode);
+				Set<String> candidateSkills = CandidateDataExtractionUtil
+						.extractCandidateSkillsSet(candidateDataJsonNode);
+				Set<String> candidateJobTitles = CandidateDataExtractionUtil
+						.extractCandidateWorkTitlesSet(candidateDataJsonNode);
+				String candidateNationality = CandidateDataExtractionUtil
+						.extractCandidateNationality(candidateDataJsonNode);
+
+				System.out.println("Candidate Qualifications: " + candidateQualifications);
+				System.out.println("Candidate Languages: " + candidateLanguages);
+				System.out.println("Candidate Skills: " + candidateSkills);
+				System.out.println("Candidate Job Titles: " + candidateJobTitles);
+				System.out.println("Candidate Nationality: " + candidateNationality);
+
+				EmbeddingListCompareRequestDTO qualificationRequestDTO = new EmbeddingListCompareRequestDTO();
+				qualificationRequestDTO.setJobAttributes(jobQualifications);
+				qualificationRequestDTO.setCandidateAttributes(candidateQualifications);
+
+				EmbeddingListCompareRequestDTO languageRequestDTO = new EmbeddingListCompareRequestDTO();
+				languageRequestDTO.setJobAttributes(jobLanguages);
+				languageRequestDTO.setCandidateAttributes(candidateLanguages);
+
+				EmbeddingListCompareRequestDTO jobTitlesRequestDTO = new EmbeddingListCompareRequestDTO();
+				jobTitlesRequestDTO.setJobAttributes(jobTitles);
+				jobTitlesRequestDTO.setCandidateAttributes(candidateJobTitles);
+
+				EmbeddingListTextCompareRequestDTO jobSkillsRequestDTO = new EmbeddingListTextCompareRequestDTO();
+				jobSkillsRequestDTO.setJobAttributes(jobDescription);
+				jobSkillsRequestDTO.setCandidateAttributes(candidateSkills);
+
+				List<CompletableFuture<EmbeddingListCompareResponseDTO>> futures = new ArrayList<>();
+				futures.add(compareEmbeddingsListAsync(qualificationRequestDTO));
+				futures.add(compareEmbeddingsListAsync(languageRequestDTO));
+				futures.add(compareEmbeddingsListTextAsync(jobSkillsRequestDTO));
+				futures.add(compareEmbeddingsListAsync(jobTitlesRequestDTO));
+				// Add more futures as needed
+
+				CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+				allFutures.thenRun(() -> {
+					// Process the results
+					EmbeddingListCompareResponseDTO qualificationResponse = futures.get(0).join();
+					EmbeddingListCompareResponseDTO languageResponse = futures.get(1).join();
+					EmbeddingListCompareResponseDTO jobSkillsResponse = futures.get(2).join();
+					EmbeddingListCompareResponseDTO jobTitlesResponse = futures.get(3).join();
+
+					double similarityScore = candidateEntityWithSimilarity.getSimilarityScore();
+					double qualificationScore = qualificationResponse.getSimilar_attributes().size()
+							/ (double) jobQualifications.size();
+					double languageScore = languageResponse.getSimilar_attributes().size()
+							/ (double) jobLanguages.size();
+					double jobSkillsScore = jobSkillsResponse.getSimilarity_score();
+					double jobTitlesScore = jobTitlesResponse.getSimilar_attributes().size()
+							/ (double) jobTitles.size();
+					double jobCountryScore = 0.0;
+					if (candidateNationality != null && jobCountry != null) {
+						if (candidateNationality.equalsIgnoreCase(jobCountry)) {
+							jobCountryScore = 1.0;
+						}
+					}
+
+					// Add to the candidate entity with similarity
+					candidateEntityWithSimilarity.setQualificationScore(qualificationScore);
+					candidateEntityWithSimilarity.setQualificationScoreDetails(
+							JSONUtil.convertObjectToJsonNode(qualificationResponse.getSimilar_attributes()));
+					candidateEntityWithSimilarity.setLanguageScore(languageScore);
+					candidateEntityWithSimilarity.setLanguageScoreDetails(
+							JSONUtil.convertObjectToJsonNode(languageResponse.getSimilar_attributes()));
+					candidateEntityWithSimilarity.setSkillsScore(jobSkillsScore);
+					candidateEntityWithSimilarity.setSkillsScoreDetails(
+							JSONUtil.convertObjectToJsonNode(jobSkillsResponse.getSimilar_attributes()));
+					candidateEntityWithSimilarity.setJobTitleScore(jobTitlesScore);
+					candidateEntityWithSimilarity.setJobTitleScoreDetails(
+							JSONUtil.convertObjectToJsonNode(jobTitlesResponse.getSimilar_attributes()));
+					candidateEntityWithSimilarity.setJobCountryScore(jobCountryScore);
+					candidateEntityWithSimilarity.setJobCountryScoreDetails(jobCountryScore > 0 ? jobCountry : "");
+
+					// Compute the final score with weightage
+					double finalScore = qualificationScore * weightage.get("jobQualifications")
+							+ languageScore * weightage.get("jobLanguages")
+							// + jobSkillsScore * weightage.get("jobSkills")
+							+ jobTitlesScore * weightage.get("jobTitles")
+							+ jobCountryScore * weightage.get("jobCountry");
+
+					finalScore = similarityScore * 0.7 + finalScore * 0.3;
+
+					candidateEntityWithSimilarity.setComputedScore(finalScore);
+
+					// Log the results or perform further processing
+					System.out.println("Processing results for candidate " + candidateEntityWithSimilarity.getId());
+				}).join(); // Ensure all processing for this candidate is completed before exiting the task
+			});
+
+			// Add the future representing the complete processing of this candidate to the
+			// list
+			candidateFutures.add(candidateFuture);
+		}
+
+		// Wait for all candidates to be processed
+		CompletableFuture.allOf(candidateFutures.toArray(new CompletableFuture[0])).join();
+
+		// Normalize the jobSkillsScore and replace the value in the
+		// candidateEntityWithSimilarityPage
+		// double maxJobSkillsScore =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).max().orElse(0.0);
+		// double minJobSkillsScore =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity::getSkillsScore).min().orElse(0.0);
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// double normalizedJobSkillsScore =
+		// (candidateEntityWithSimilarity.getSkillsScore() - minJobSkillsScore)
+		// / (maxJobSkillsScore - minJobSkillsScore);
+		// candidateEntityWithSimilarity.setSkillsScore(normalizedJobSkillsScore);
+		//
+		// // Updated the computed score with weightage
+		// double finalScore = candidateEntityWithSimilarity.getQualificationScore()
+		// * weightage.get("jobQualifications")
+		// + candidateEntityWithSimilarity.getLanguageScore() *
+		// weightage.get("jobLanguages")
+		// + normalizedJobSkillsScore * weightage.get("jobSkills")
+		// + candidateEntityWithSimilarity.getJobTitleScore() *
+		// weightage.get("jobTitles")
+		// + candidateEntityWithSimilarity.getJobCountryScore() *
+		// weightage.get("jobCountry");
+		//
+		// finalScore = candidateEntityWithSimilarity.getSimilarityScore() * 0.7 +
+		// finalScore * 0.3;
+		// candidateEntityWithSimilarity.setComputedScore(finalScore);
+		// }
+
+		// // Normal the skill similarity score based on the max and min length of
+		// matching skills
+		// double maxSkillsLength =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity->
+		// CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).max().orElse(0.0);
+		// double minSkillsLength =
+		// candidateEntityWithSimilarityPage.getContent().stream()
+		// .mapToDouble(CandidateEntityWithSimilarity->
+		// CandidateEntityWithSimilarity.getSkillsScoreDetails().size()).min().orElse(0.0);
+		// for (CandidateEntityWithSimilarity candidateEntityWithSimilarity :
+		// candidateEntityWithSimilarityPage
+		// .getContent()) {
+		// double normalizedSkillsLength =
+		// (candidateEntityWithSimilarity.getSkillsScoreDetails().size() -
+		// minSkillsLength)
+		// / (maxSkillsLength - minSkillsLength);
+		// candidateEntityWithSimilarity.setSkillsScore(normalizedSkillsLength);
+		//
+		// // Updated the computed score with weightage
+		// double finalScore = candidateEntityWithSimilarity.getQualificationScore()
+		// * weightage.get("jobQualifications")
+		// + candidateEntityWithSimilarity.getLanguageScore() *
+		// weightage.get("jobLanguages")
+		// + normalizedSkillsLength * weightage.get("jobSkills")
+		// + candidateEntityWithSimilarity.getJobTitleScore() *
+		// weightage.get("jobTitles")
+		// + candidateEntityWithSimilarity.getJobCountryScore() *
+		// weightage.get("jobCountry");
+		// }
+
+		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage);
+	}
+
+	private CandidateSimilarityListingResponseDTO candidateSimilarityPageToCandidateSimilarityListingResponse(
+			Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage) {
 		CandidateSimilarityListingResponseDTO candidateSimilarityListingResponseDTO = new CandidateSimilarityListingResponseDTO();
 		candidateSimilarityListingResponseDTO.setTotalPages(candidateEntityWithSimilarityPage.getTotalPages());
 		candidateSimilarityListingResponseDTO.setTotalElements(candidateEntityWithSimilarityPage.getTotalElements());
@@ -946,8 +1296,7 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateSimilarityListingResponseDTO.setPageSize(candidateEntityWithSimilarityPage.getSize());
 
 		// Sort the content based on similarity score
-		List<CandidateEntityWithSimilarity> sortedList = candidateEntityWithSimilarityPage.getContent()
-				.stream()
+		List<CandidateEntityWithSimilarity> sortedList = candidateEntityWithSimilarityPage.getContent().stream()
 				.sorted(Comparator.comparingDouble(CandidateEntityWithSimilarity::getSimilarityScore).reversed())
 				.collect(Collectors.toList());
 

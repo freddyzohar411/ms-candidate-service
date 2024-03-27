@@ -36,6 +36,9 @@ public interface CandidateService {
 	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
 			throws ExecutionException, InterruptedException;
 
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchOpenai(CandidateListingRequestDTO candidateListingRequestDTO)
+			throws ExecutionException, InterruptedException;
+
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 	
 	List<CandidateEntity>getAllCandidatesByUser(boolean draft, boolean deleted);

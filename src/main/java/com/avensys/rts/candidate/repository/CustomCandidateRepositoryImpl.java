@@ -1167,6 +1167,77 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
 	}
 
+	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(List<Long> userIds,
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
+		// Conversion to PostgreSQL's array format for vector comparison
+		String vectorString = jobDescriptionVector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
+
+		// Construct user condition for SQL query
+		String userCondition = userIds.isEmpty() ? "" : " AND created_by IN (:userIds)";
+
+		// Sorting logic
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
+		String orderByClause = sortBy.contains(".") ? sortBy.split("\\.")[0] + "->>'" + sortBy.split("\\.")[1] + "'" : sortBy;
+		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+
+		// SQL Query String
+		String queryString = String.format(
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings_openai)) AS cosine_similarity FROM candidate c " +
+						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
+						"AND c.candidate_embeddings_openai IS NOT NULL " +
+						"ORDER BY %s %s, c.updated_at DESC",
+				userCondition, orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("vectorText", vectorString);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Prepare a list to hold the final results
+		List<CandidateEntityWithSimilarity> resultListWithSimilarity = new ArrayList<>();
+
+		// Execute the modified query
+		List<Object[]> idAndScores = query.getResultList();
+
+		// Fetch each CandidateEntity by ID and construct the final DTOs
+		for (Object[] idAndScore : idAndScores) {
+			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
+			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
+			Double similarityScore = (Double) idAndScore[1];
+			System.out.println("candidateId: " + candidateId + " similarityScore: " + similarityScore);
+
+			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
+			System.out.println("candidate: " + candidate.getFirstName());
+			if (candidate != null) {
+				resultListWithSimilarity.add(new CandidateEntityWithSimilarity(candidate, similarityScore));
+			}
+		}
+
+		// Count query for pagination
+		Query countQuery = entityManager.createNativeQuery(String.format(
+				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
+						"AND candidate_embeddings_openai IS NOT NULL",
+				userCondition));
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Return the paginated results
+		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
+	}
 
 	@Override
 	public Page<CandidateEntity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
