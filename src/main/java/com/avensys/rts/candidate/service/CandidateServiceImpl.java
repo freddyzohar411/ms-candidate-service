@@ -1,6 +1,7 @@
 package com.avensys.rts.candidate.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -625,6 +626,10 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
+		if (candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_NAME_EXIST, null,
+					LocaleContextHolder.getLocale()));
+		}
 		System.out.println(" Save candidate customFields : Service");
 		System.out.println(customFieldsRequestDTO);
 		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
@@ -635,18 +640,27 @@ public class CandidateServiceImpl implements CandidateService {
 	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
 		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
-		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
-		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
-		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(getUserId());
+		customFieldsEntity.setUpdatedBy(getUserId());
 		return candidateCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(
 			CustomFieldsEntity candidateCustomFieldsEntity) {
 		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
-		customFieldsResponseDTO.setColumnName(candidateCustomFieldsEntity.getColumnName());
+		// Converting String to List of String.
+		String columnNames = candidateCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
+		// customFieldsResponseDTO.setColumnName(candidateCustomFieldsEntity.getColumnName());
 		customFieldsResponseDTO.setCreatedBy(candidateCustomFieldsEntity.getCreatedBy());
 		customFieldsResponseDTO.setName(candidateCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(candidateCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;

@@ -6,4 +6,5 @@ import com.avensys.rts.candidate.entity.CustomFieldsEntity;
 
 public interface CandidateCustomFieldsRepository extends JpaRepository<CustomFieldsEntity, Long>  {
 
+	public Boolean existsByName(String name);
 }

@@ -12,6 +12,7 @@ public class MessageConstants {
     public static final String CANDIDATE_NOT_FOUND = "candidate.notfound";
     public static final String CANDIDATE_EXIST = "candidate.exist";
   //new
+	public static final String CANDIDATE_CUSTOM_VIEW_NAME_EXIST = "candidate.customnameexist";
   	public static final String CANDIDATE_CUSTOM_VIEW = "candidate.customViewSaved";
 
 	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
