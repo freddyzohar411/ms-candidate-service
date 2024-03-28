@@ -35,6 +35,9 @@ public class CandidateEntityWithSimilarity extends CandidateEntity {
 	private String jobCountryScoreDetails;
 	private Double computedScore;
 
+	private Double generalScore;
+	private JsonNode generalScoreDetails;
+
 	public CandidateEntityWithSimilarity(CandidateEntity candidateEntity, Double similarityScore) {
 		this.setId(candidateEntity.getId());
 		this.setFirstName(candidateEntity.getFirstName());

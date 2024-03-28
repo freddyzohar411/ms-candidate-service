@@ -818,6 +818,7 @@ public class CandidateServiceImpl implements CandidateService {
 						.extractCandidateWorkTitlesSet(candidateDataJsonNode);
 				String candidateNationality = CandidateDataExtractionUtil
 						.extractCandidateNationality(candidateDataJsonNode);
+				String candidateDetails = CandidateDataExtractionUtil.extractAllDetails(candidateDataJsonNode);
 
 				System.out.println("Candidate Qualifications: " + candidateQualifications);
 				System.out.println("Candidate Languages: " + candidateLanguages);
@@ -841,11 +842,16 @@ public class CandidateServiceImpl implements CandidateService {
 				jobSkillsRequestDTO.setJobAttributes(jobDescription);
 				jobSkillsRequestDTO.setCandidateAttributes(candidateSkills);
 
+				EmbeddingTextCompareRequestDTO generalRequestDTO = new EmbeddingTextCompareRequestDTO();
+				generalRequestDTO.setJobAttributes(jobDataAll);
+				generalRequestDTO.setCandidateAttributes(candidateDetails);
+
 				List<CompletableFuture<EmbeddingListCompareResponseDTO>> futures = new ArrayList<>();
 				futures.add(compareEmbeddingsListAsync(qualificationRequestDTO));
 				futures.add(compareEmbeddingsListAsync(languageRequestDTO));
 				futures.add(compareEmbeddingsListTextAsync(jobSkillsRequestDTO));
 				futures.add(compareEmbeddingsListAsync(jobTitlesRequestDTO));
+				futures.add(compareEmbeddingsTextAsync(generalRequestDTO));
 				// Add more futures as needed
 
 				CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -855,6 +861,7 @@ public class CandidateServiceImpl implements CandidateService {
 					EmbeddingListCompareResponseDTO languageResponse = futures.get(1).join();
 					EmbeddingListCompareResponseDTO jobSkillsResponse = futures.get(2).join();
 					EmbeddingListCompareResponseDTO jobTitlesResponse = futures.get(3).join();
+					EmbeddingListCompareResponseDTO generalResponse = futures.get(4).join();
 
 					double similarityScore = candidateEntityWithSimilarity.getSimilarityScore();
 					double qualificationScore = qualificationResponse.getSimilar_attributes().size()
@@ -886,6 +893,9 @@ public class CandidateServiceImpl implements CandidateService {
 							JSONUtil.convertObjectToJsonNode(jobTitlesResponse.getSimilar_attributes()));
 					candidateEntityWithSimilarity.setJobCountryScore(jobCountryScore);
 					candidateEntityWithSimilarity.setJobCountryScoreDetails(jobCountryScore > 0 ? jobCountry : "");
+					candidateEntityWithSimilarity.setGeneralScore(generalResponse.getSimilarity_score());
+					candidateEntityWithSimilarity.setGeneralScoreDetails(
+							JSONUtil.convertObjectToJsonNode(generalResponse.getSimilar_attributes()));
 
 					// Compute the final score with weightage
 					double finalScore = qualificationScore * weightage.get("jobQualifications")
@@ -1025,8 +1035,8 @@ public class CandidateServiceImpl implements CandidateService {
 				EmbeddingResponseDTO.class);
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = candidateRepository
-				.findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(userUtil.getUsersIdUnderManager(), false, false,
-						true, pageRequest, jobEmbedding.getEmbedding());
+				.findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(userUtil.getUsersIdUnderManager(), false,
+						false, true, pageRequest, jobEmbedding.getEmbedding());
 
 		// HashMap<String, Double> weightage = new HashMap<>();
 		// weightage.put("jobQualifications", 0.15);
@@ -1200,7 +1210,7 @@ public class CandidateServiceImpl implements CandidateService {
 					// Compute the final score with weightage
 					double finalScore = qualificationScore * weightage.get("jobQualifications")
 							+ languageScore * weightage.get("jobLanguages")
-							// + jobSkillsScore * weightage.get("jobSkills")
+					// + jobSkillsScore * weightage.get("jobSkills")
 							+ jobTitlesScore * weightage.get("jobTitles")
 							+ jobCountryScore * weightage.get("jobCountry");
 
@@ -1317,6 +1327,14 @@ public class CandidateServiceImpl implements CandidateService {
 			EmbeddingListTextCompareRequestDTO requestDTO) {
 		return CompletableFuture.supplyAsync(() -> {
 			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsListText(requestDTO);
+			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
+		});
+	}
+
+	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsTextAsync(
+			EmbeddingTextCompareRequestDTO requestDTO) {
+		return CompletableFuture.supplyAsync(() -> {
+			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsText(requestDTO);
 			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
 		});
 	}
