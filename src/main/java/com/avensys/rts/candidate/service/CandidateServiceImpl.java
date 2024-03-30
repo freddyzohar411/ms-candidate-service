@@ -37,6 +37,8 @@ import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.repository.CandidateRepository;
 
 import jakarta.transaction.Transactional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @Service
 public class CandidateServiceImpl implements CandidateService {
@@ -514,6 +516,9 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateMatchingDetailsResponseDTO getMatchCandidateToJobData(Integer candidateId, Long jobId) {
+		String jwtToken = JwtUtil.getTokenFromContext();
+		RequestAttributes parentContext = RequestContextHolder.getRequestAttributes();
+		System.out.println("JWT Token CHeck: " + jwtToken);
 		// Get the job data
 		CandidateResponseDTO.HttpResponse jobResponse = jobAPIClient.getJobByIdDataAll(jobId);
 		HashMap<String, Object> jobData = MappingUtil.mapClientBodyToClass(jobResponse.getData(), HashMap.class);
@@ -543,7 +548,7 @@ public class CandidateServiceImpl implements CandidateService {
 		String candidateDetails = CandidateDataExtractionUtil.extractAllDetails(candidateDataJsonNode);
 
 		CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = new CandidateMatchingDetailsResponseDTO();
-
+		System.out.println("Start Matching");
 		CompletableFuture<Void> candidateFuture = CompletableFuture.runAsync(() -> {
 			// Use pre-fetched data for processing
 
@@ -568,11 +573,11 @@ public class CandidateServiceImpl implements CandidateService {
 			generalRequestDTO.setCandidateAttributes(candidateDetails);
 
 			List<CompletableFuture<EmbeddingListCompareResponseDTO>> futures = new ArrayList<>();
-			futures.add(compareEmbeddingsListAsync(qualificationRequestDTO));
-			futures.add(compareEmbeddingsListAsync(languageRequestDTO));
-			futures.add(compareEmbeddingsListTextAsync(jobSkillsRequestDTO));
-			futures.add(compareEmbeddingsListAsync(jobTitlesRequestDTO));
-			futures.add(compareEmbeddingsTextAsync(generalRequestDTO));
+			futures.add(compareEmbeddingsListAsyncMan(qualificationRequestDTO,jwtToken, parentContext));
+			futures.add(compareEmbeddingsListAsyncMan(languageRequestDTO,jwtToken, parentContext));
+			futures.add(compareEmbeddingsListTextAsyncMan(jobSkillsRequestDTO,jwtToken, parentContext));
+			futures.add(compareEmbeddingsListAsyncMan(jobTitlesRequestDTO, jwtToken, parentContext));
+			futures.add(compareEmbeddingsTextAsyncMan(generalRequestDTO, jwtToken, parentContext));
 			// Add more futures as needed
 
 			CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -1468,13 +1473,22 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateSimilarityListingResponseDTO;
 	}
 
-	// Method to perform asynchronous API calls for embedding comparison
+//	 Method to perform asynchronous API calls for embedding comparison
 	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsListAsync(
 			EmbeddingListCompareRequestDTO requestDTO) {
 		return CompletableFuture.supplyAsync(() -> {
 			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsList(requestDTO);
 			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
 		});
+	}
+
+	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsListAsyncMan(
+			EmbeddingListCompareRequestDTO requestDTO,String token, RequestAttributes context) {
+		System.out.println("Token in List: "+token);
+		return AsyncUtil.supplyAsyncWithContextManualAdd(() -> {
+			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsList(requestDTO);
+			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
+		}, token, context);
 	}
 
 	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsListTextAsync(
@@ -1485,12 +1499,28 @@ public class CandidateServiceImpl implements CandidateService {
 		});
 	}
 
+	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsListTextAsyncMan(
+			EmbeddingListTextCompareRequestDTO requestDTO,String token, RequestAttributes context) {
+		return AsyncUtil.supplyAsyncWithContextManualAdd(() -> {
+			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsListText(requestDTO);
+			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
+		}, token, context);
+	}
+
 	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsTextAsync(
 			EmbeddingTextCompareRequestDTO requestDTO) {
 		return CompletableFuture.supplyAsync(() -> {
 			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsText(requestDTO);
 			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
 		});
+	}
+
+	private CompletableFuture<EmbeddingListCompareResponseDTO> compareEmbeddingsTextAsyncMan(
+			EmbeddingTextCompareRequestDTO requestDTO,String token, RequestAttributes context) {
+		return AsyncUtil.supplyAsyncWithContextManualAdd(() -> {
+			CandidateResponseDTO.HttpResponse response = embeddingAPIClient.compareEmbeddingsText(requestDTO);
+			return MappingUtil.mapClientBodyToClass(response.getData(), EmbeddingListCompareResponseDTO.class);
+		}, token, context);
 	}
 
 	// @Override
