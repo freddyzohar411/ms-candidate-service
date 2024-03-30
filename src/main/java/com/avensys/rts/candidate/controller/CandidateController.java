@@ -5,9 +5,7 @@ import java.util.concurrent.ExecutionException;
 
 import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.enums.Permission;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.*;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
 import com.avensys.rts.candidate.service.CandidateMappingService;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.avensys.rts.candidate.constant.MessageConstants;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.ResponseUtil;
@@ -202,6 +199,36 @@ public class CandidateController {
 	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+	@PostMapping("/listing/similarity-search/all")
+	public ResponseEntity<Object> getCandidateListingMatchAll(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+		LOG.info("Candidate get all fields: Controller");
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			try {
+				return ResponseUtil.generateSuccessResponse(
+						candidateNewService.getCandidateListingPageWithSimilaritySearchAll(candidateListingRequestDTO),
+						HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+								LocaleContextHolder.getLocale()));
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		try {
+			return ResponseUtil.generateSuccessResponse(
+					candidateNewService.getCandidateListingPageWithSimilaritySearchAll(candidateListingRequestDTO),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
+		} catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/similarity-search")
 	public ResponseEntity<Object> getCandidateListingMatch(
 			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
@@ -221,9 +248,9 @@ public class CandidateController {
 		}
 		try {
 			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
-					HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+					candidateNewService.getCandidateListingPageWithSimilaritySearchAll(candidateListingRequestDTO),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
 		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		} catch (InterruptedException e) {
@@ -232,7 +259,7 @@ public class CandidateController {
 	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-	@PostMapping("/listing/similarity-search/openai")
+	@PostMapping("/listing/similarity-search/openai/all")
 	public ResponseEntity<Object> getCandidateListingMatchOpenai(
 			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
 		LOG.info("Candidate get all fields: Controller");
@@ -240,7 +267,8 @@ public class CandidateController {
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			try {
 				return ResponseUtil.generateSuccessResponse(
-						candidateNewService.getCandidateListingPageWithSimilaritySearchOpenai(candidateListingRequestDTO),
+						candidateNewService
+								.getCandidateListingPageWithSimilaritySearchOpenai(candidateListingRequestDTO),
 						HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
 								LocaleContextHolder.getLocale()));
 			} catch (ExecutionException e) {
@@ -252,8 +280,8 @@ public class CandidateController {
 		try {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPageWithSimilaritySearchOpenai(candidateListingRequestDTO),
-					HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
 		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		} catch (InterruptedException e) {
@@ -366,6 +394,17 @@ public class CandidateController {
 		LOG.info("Candidate similarity search: Controller");
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateJobSimilaritySearch(jobSimilaritySearchRequestDTO), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("match/candidates/{candidateId}/jobs/{jobId}")
+	public ResponseEntity<Object> getMatchCandidateToJobData(@PathVariable Integer candidateId, @PathVariable Long jobId) {
+		LOG.info("Candidate match to job: Controller");
+		System.out.println("Candidate Id: " + candidateId + " Job Id: " + jobId);
+		CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = candidateNewService
+				.getMatchCandidateToJobData(candidateId, jobId);
+		return ResponseUtil.generateSuccessResponse(candidateMatchingDetailsResponseDTO,
+				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 

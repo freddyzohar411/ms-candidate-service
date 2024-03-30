@@ -34,7 +34,6 @@ public class CandidateEntityWithSimilarity extends CandidateEntity {
 	private Double jobCountryScore;
 	private String jobCountryScoreDetails;
 	private Double computedScore;
-
 	private Double generalScore;
 	private JsonNode generalScoreDetails;
 
