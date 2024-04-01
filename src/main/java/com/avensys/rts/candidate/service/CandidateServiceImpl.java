@@ -484,6 +484,8 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings",
 				candidateEmbeddingData.getEmbedding());
 
+		System.out.println("Candidate Embedding: " + candidateEmbeddingData.getEmbedding());
+
 		// OpenAI Embedding
 		EmbeddingRequestDTO openAIEmbeddingRequestDTO = new EmbeddingRequestDTO();
 		openAIEmbeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(candidateDetails));
