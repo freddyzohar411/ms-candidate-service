@@ -25,5 +25,7 @@ public class CandidateMatchingDetailsResponseDTO {
 	private String jobCountryScoreDetails;
 	private Double generalScore;
 	private JsonNode generalScoreDetails;
+	private Double fieldOfStudyScore;
+	private JsonNode fieldOfStudyScoreDetails;
 	private Double computedScore;
 }

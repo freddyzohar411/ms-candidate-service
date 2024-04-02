@@ -14,4 +14,5 @@ import lombok.Setter;
 public class EmbeddingListTextCompareRequestDTO {
 	private String jobAttributes;
 	private Set<String> candidateAttributes;
+	private String modelName;
 }

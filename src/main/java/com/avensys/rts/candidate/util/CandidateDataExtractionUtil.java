@@ -397,7 +397,7 @@ public class CandidateDataExtractionUtil {
 		return "";
 	}
 
-	public static HashSet<String> extractCandidateFieldOfStudy (JsonNode candidate) {
+	public static HashSet<String> extractCandidateFieldOfStudySet (JsonNode candidate) {
 		HashSet<String> fieldOfStudySet = new HashSet<>();
 		JsonNode educationDetails = candidate.get("educationDetails");
 		if (educationDetails != null && educationDetails.isArray()) {
