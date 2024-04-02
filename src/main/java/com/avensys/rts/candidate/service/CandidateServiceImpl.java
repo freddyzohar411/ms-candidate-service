@@ -562,35 +562,15 @@ public class CandidateServiceImpl implements CandidateService {
 				EmbeddingListCompareResponseDTO jobTitlesResponse = futures.get(3).join();
 				EmbeddingListCompareResponseDTO generalResponse = futures.get(4).join();
 
-//				double qualificationScore = qualificationResponse.getSimilar_attributes().size()
-//						/ (double) jobQualifications.size();
-//				double languageScore = languageResponse.getSimilar_attributes().size() / (double) jobLanguages.size();
-//				double jobSkillsScore = jobSkillsResponse.getSimilarity_score();
-//				double jobTitlesScore = jobTitlesResponse.getSimilar_attributes().size() / (double) jobTitles.size();
-//				double jobCountryScore = 0.0;
-//				if (candidateNationality != null && jobCountry != null) {
-//					if (candidateNationality.equalsIgnoreCase(jobCountry)) {
-//						jobCountryScore = 1.0;
-//					}
-//				}
-//				double generalScore = generalResponse.getSimilarity_score();
-
 				// Add to the candidate entity with similarity
-//				candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationScore);
 				candidateMatchingDetailsResponseDTO.setQualificationScoreDetails(
 						JSONUtil.convertObjectToJsonNode(qualificationResponse.getSimilar_attributes()));
-//				candidateMatchingDetailsResponseDTO.setLanguageScore(languageScore);
 				candidateMatchingDetailsResponseDTO.setLanguageScoreDetails(
 						JSONUtil.convertObjectToJsonNode(languageResponse.getSimilar_attributes()));
-//				candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillsScore);
 				candidateMatchingDetailsResponseDTO.setSkillsScoreDetails(
 						JSONUtil.convertObjectToJsonNode(jobSkillsResponse.getSimilar_attributes()));
-//				candidateMatchingDetailsResponseDTO.setJobTitleScore(jobTitlesScore);
 				candidateMatchingDetailsResponseDTO.setJobTitleScoreDetails(
 						JSONUtil.convertObjectToJsonNode(jobTitlesResponse.getSimilar_attributes()));
-//				candidateMatchingDetailsResponseDTO.setJobCountryScore(jobCountryScore);
-//				candidateMatchingDetailsResponseDTO.setJobCountryScoreDetails(jobCountryScore > 0 ? jobCountry : "");
-//				candidateMatchingDetailsResponseDTO.setGeneralScore(generalScore);
 				candidateMatchingDetailsResponseDTO.setGeneralScoreDetails(
 						JSONUtil.convertObjectToJsonNode(generalResponse.getSimilar_attributes()));
 
