@@ -34,13 +34,10 @@ public interface CandidateService {
 	
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean getAll);
 
-	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchAll(CandidateListingRequestDTO candidateListingRequestDTO)
-			throws ExecutionException, InterruptedException;
-
 	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
 			throws ExecutionException, InterruptedException;
 
-	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchOpenai(CandidateListingRequestDTO candidateListingRequestDTO)
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchAndSearchTerm(CandidateListingRequestDTO candidateListingRequestDTO)
 			throws ExecutionException, InterruptedException;
 
 	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);

@@ -22,18 +22,12 @@ public class AsyncUtil {
 		});
 	}
 
-	public static <T> CompletableFuture<T> supplyAsyncWithContextManualAdd(Supplier<T> supplier, String token, RequestAttributes context ) {
+	public static <T> CompletableFuture<T> supplyAsyncWithContextManualAdd(Supplier<T> supplier, RequestAttributes context ) {
 
 		try {
 			return CompletableFuture.supplyAsync(() -> {
 				try {
 					RequestContextHolder.setRequestAttributes(context);
-
-					// Now the context is available in this thread
-//					RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-//					String TT = (String) requestAttributes.getAttribute("token", RequestAttributes.SCOPE_REQUEST);
-//					System.out.println("Token TT: " + TT);
-//					JwtTokenInterceptor.setToken(token);
 					return supplier.get();
 				} finally {
 					RequestContextHolder.resetRequestAttributes();

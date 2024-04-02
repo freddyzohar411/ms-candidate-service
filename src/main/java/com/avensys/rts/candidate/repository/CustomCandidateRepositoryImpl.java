@@ -998,102 +998,6 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		return results;
 	}
 
-//	@Override
-//	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
-//			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
-//		// Convert List<Float> to PostgreSQL's array format for the vector comparison
-//		String vectorString = jobDescriptionVector.stream()
-//				.map(Object::toString)
-//				.collect(Collectors.joining(",", "[", "]"));
-//
-//		// Determine if sortBy is a regular column or a JSONB column
-//		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-//				: "updated_at";
-//		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-//				: "updated_at";
-//		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
-//			String[] parts = sortBy.split("\\.");
-//			String jsonColumnName = parts[0];
-//			String jsonKey = parts[1];
-//			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
-//		}
-//
-//		// Extract sort direction from pageable
-//		String sortDirection = pageable.getSort().isSorted()
-//				? pageable.getSort().get().findFirst().get().getDirection().name()
-//				: "ASC";
-//
-//
-//		// User ID condition
-//		String userCondition = "";
-//		if (!userIds.isEmpty()) {
-//			userCondition = " AND created_by IN (:userIds)";
-//		}
-//
-////		// Determine if sortBy is a regular column or a JSONB column
-////		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-////				: "cosine_similarity"; // Default to cosine_similarity if no sorting is provided
-////		String orderByClause;
-////		String sortDirection = pageable.getSort().isSorted()
-////				? pageable.getSort().get().findFirst().get().getDirection().name()
-////				: "DESC"; // Default to DESC for cosine similarity
-//
-//
-//
-//		// Adjusting the SQL query to include vector comparison for cosine similarity and dynamic ordering
-//		String queryString = String.format(
-//				"SELECT *, 1 - (CAST(:vectorText AS vector)  <=> candidate_embeddings) AS cosine_similarity FROM candidate " +
-//						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-//						"AND candidate_embeddings IS NOT NULL " +
-//						"ORDER BY %s, updated_at DESC", // updated_at DESC ensures a secondary sort if primary is equal
-//				userCondition, orderByClause);
-//
-//		// Create and execute the query
-//		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
-//		query.setParameter("isDeleted", isDeleted);
-//		query.setParameter("isDraft", isDraft);
-//		query.setParameter("isActive", isActive);
-//		if (!userIds.isEmpty()) {
-//			query.setParameter("userIds", userIds);
-//		}
-//		query.setParameter("vectorText", vectorString);
-//		query.setFirstResult((int) pageable.getOffset());
-//		query.setMaxResults(pageable.getPageSize());
-//
-//		// Get the result list
-//		List<CandidateEntity> resultList = query.getResultList();
-//
-//		// Build the count query string for pagination
-//		String countQueryString = String.format(
-//				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s " +
-//						"AND candidate_embeddings IS NOT NULL",
-//				userCondition);
-//
-//		// Create and execute the count query
-//		Query countQuery = entityManager.createNativeQuery(countQueryString);
-//		countQuery.setParameter("isDeleted", isDeleted);
-//		countQuery.setParameter("isDraft", isDraft);
-//		countQuery.setParameter("isActive", isActive);
-//		if (!userIds.isEmpty()) {
-//			countQuery.setParameter("userIds", userIds);
-//		}
-//		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
-//
-//		// Execute the query and get the raw result list
-//		List<Object[]> rawResults = query.getResultList();
-//
-//		// Convert raw results to your DTOs
-//		List<CandidateEntityWithSimilarity> resultListWithSimilarity = new ArrayList<>();
-//		for (Object[] row : rawResults) {
-//			CandidateEntity candidate = (CandidateEntity) row[0]; // Cast the first element to CandidateEntity
-//			Double similarityScore = (Double) row[1]; // Cast the second element to Double, assuming this is the similarity score
-//			resultListWithSimilarity.add(new CandidateEntityWithSimilarity(candidate, similarityScore));
-//		}
-//
-//		// Create and return a Page object
-//		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
-//	}
-//
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
@@ -1107,15 +1011,21 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Sorting logic
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
-		String orderByClause = sortBy.contains(".") ? sortBy.split("\\.")[0] + "->>'" + sortBy.split("\\.")[1] + "'" : sortBy;
 		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
-
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+		}
 		// SQL Query String
 		String queryString = String.format(
 				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
 						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
 						"AND c.candidate_embeddings IS NOT NULL " +
-						"ORDER BY %s %s, c.updated_at DESC",
+						"ORDER BY %s %s",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -1141,10 +1051,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
 			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
 			Double similarityScore = (Double) idAndScore[1];
-			System.out.println("candidateId: " + candidateId + " similarityScore: " + similarityScore);
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
-			System.out.println("candidate: " + candidate.getFirstName());
 			if (candidate != null) {
 				resultListWithSimilarity.add(new CandidateEntityWithSimilarity(candidate, similarityScore));
 			}
@@ -1167,7 +1075,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
 	}
 
-	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchOpenai(List<Long> userIds,
+	@Override
+	public Page<CandidateEntityWithSimilarity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
 		// Conversion to PostgreSQL's array format for vector comparison
 		String vectorString = jobDescriptionVector.stream()
@@ -1179,15 +1088,22 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Sorting logic
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
-		String orderByClause = sortBy.contains(".") ? sortBy.split("\\.")[0] + "->>'" + sortBy.split("\\.")[1] + "'" : sortBy;
 		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+		}
 
 		// SQL Query String
 		String queryString = String.format(
-				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings_openai)) AS cosine_similarity FROM candidate c " +
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
 						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND c.candidate_embeddings_openai IS NOT NULL " +
-						"ORDER BY %s %s, c.updated_at DESC",
+						"AND c.candidate_embeddings IS NOT NULL " +
+						"ORDER BY %s %s",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -1213,10 +1129,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
 			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
 			Double similarityScore = (Double) idAndScore[1];
-			System.out.println("candidateId: " + candidateId + " similarityScore: " + similarityScore);
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
-			System.out.println("candidate: " + candidate.getFirstName());
 			if (candidate != null) {
 				resultListWithSimilarity.add(new CandidateEntityWithSimilarity(candidate, similarityScore));
 			}
@@ -1225,7 +1139,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND candidate_embeddings_openai IS NOT NULL",
+						"AND candidate_embeddings IS NOT NULL",
 				userCondition));
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
@@ -1240,9 +1154,105 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	}
 
 	@Override
-	public Page<CandidateEntity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
-		return null;
+	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
+			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
+			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector) {
+		// Conversion to PostgreSQL's array format for vector comparison
+		String vectorString = jobDescriptionVector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
+
+		// Construct user condition for SQL query
+		String userCondition = userIds.isEmpty() ? "" : " AND created_by IN (:userIds)";
+
+		// Sorting logic
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
+		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+		}
+
+		// Build the dynamic search conditions based on searchFields
+		StringBuilder searchConditions = new StringBuilder();
+		for (int i = 0; i < searchFields.size(); i++) {
+			String field = searchFields.get(i);
+			if (field.contains(".")) { // assuming field is in the format "jsonColumn.jsonKey"
+				String[] parts = field.split("\\.");
+				String jsonColumnName = parts[0];
+				String jsonKey = parts[1];
+				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
+			} else {
+				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
+			}
+		}
+
+		// Remove the leading " OR " from the searchConditions
+		if (searchConditions.length() > 0) {
+			searchConditions.delete(0, 4);
+		}
+
+		// SQL Query String
+		String queryString = String.format(
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
+						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) " +
+						"AND c.candidate_embeddings IS NOT NULL " +
+						"ORDER BY %s %s",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isDraft", isDraft);
+		query.setParameter("isActive", isActive);
+		query.setParameter("vectorText", vectorString);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
+		query.setParameter("searchTerm", "%" + searchTerm + "%");
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Prepare a list to hold the final results
+		List<CandidateEntityWithSimilarity> resultListWithSimilarity = new ArrayList<>();
+
+		// Execute the modified query
+		List<Object[]> idAndScores = query.getResultList();
+
+		// Fetch each CandidateEntity by ID and construct the final DTOs
+		for (Object[] idAndScore : idAndScores) {
+			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
+			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
+			Double similarityScore = (Double) idAndScore[1];
+
+			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
+			if (candidate != null) {
+				resultListWithSimilarity.add(new CandidateEntityWithSimilarity(candidate, similarityScore));
+			}
+		}
+
+		// Count query for pagination
+		Query countQuery = entityManager.createNativeQuery(String.format(
+				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) " +
+						"AND candidate_embeddings IS NOT NULL",
+				userCondition, searchConditions.toString()));
+
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isDraft", isDraft);
+		countQuery.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
+		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+
+		// Return the paginated results
+		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
 	}
 
 }
