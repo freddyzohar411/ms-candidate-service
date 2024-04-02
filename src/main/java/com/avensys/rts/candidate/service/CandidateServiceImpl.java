@@ -749,7 +749,142 @@ public class CandidateServiceImpl implements CandidateService {
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false,
 							false, true, pageRequest, jobEmbedding.getEmbedding());
 		}
+
+		// Special evaluation for each candidate compute the other score in using
+		// concurrency
+		// Use this getMatchCandidateToJobData function
+
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
+	}
+
+	private CandidateMatchingDetailsResponseDTO getSimilarityData(Page<CandidateEntityWithSimilarity> candidatePage,
+			Long jobId) {
+		RequestAttributes parentContext = RequestContextHolder.getRequestAttributes();
+		// Get the job data
+		CandidateResponseDTO.HttpResponse jobResponse = jobAPIClient.getJobByIdDataAll(jobId);
+		HashMap<String, Object> jobData = MappingUtil.mapClientBodyToClass(jobResponse.getData(), HashMap.class);
+		JsonNode jobJsonNode = MappingUtil.convertHashMapToJsonNode(jobData);
+		JobDataExtractionUtil.printJSON(jobJsonNode);
+		String jobDataAll = JobDataExtractionUtil.extractJobInfo(jobJsonNode);
+
+		// Get job extracted data
+		Set<String> jobQualifications = JobDataExtractionUtil.extractJobQualifications(jobJsonNode);
+		Set<String> jobLanguages = JobDataExtractionUtil.extractJobLanguages(jobJsonNode);
+		String jobDescription = JobDataExtractionUtil.extractJobDescription(jobJsonNode);
+		Set<String> jobTitles = JobDataExtractionUtil.extractJobTitle(jobJsonNode);
+		String jobCountry = JobDataExtractionUtil.extractJobCountry(jobJsonNode);
+
+		// Get All the cadnidateData first by loop and storing it
+		List<HashMap<String, Object>> candidateDataList = new ArrayList<>();
+		for (CandidateEntityWithSimilarity candidateEntityWithSimilarity : candidatePage.getContent()) {
+			HashMap<String, Object> candidateData = getCandidateByIdDataAll(candidateEntityWithSimilarity.getId());
+			candidateDataList.add(candidateData);
+		}
+
+		// Use concurrency to get the similarity data
+		List<CompletableFuture<CandidateMatchingDetailsResponseDTO>> futures = new ArrayList<>();
+		for (HashMap<String, Object> candidateData : candidateDataList) {
+			JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(candidateData);
+			Set<String> candidateQualifications = CandidateDataExtractionUtil
+					.extractCandidateEducationQualificationsSet(candidateDataJsonNode);
+			Set<String> candidateLanguages = CandidateDataExtractionUtil
+					.extractCandidateLanguagesSet(candidateDataJsonNode);
+			Set<String> candidateSkills = CandidateDataExtractionUtil.extractCandidateSkillsSet(candidateDataJsonNode);
+			Set<String> candidateJobTitles = CandidateDataExtractionUtil
+					.extractCandidateWorkTitlesSet(candidateDataJsonNode);
+			String candidateNationality = CandidateDataExtractionUtil
+					.extractCandidateNationality(candidateDataJsonNode);
+			String candidateDetails = CandidateDataExtractionUtil.extractAllDetails(candidateDataJsonNode);
+
+			CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = new CandidateMatchingDetailsResponseDTO();
+			CompletableFuture<Void> candidateFuture = CompletableFuture.runAsync(() -> {
+				// Use pre-fetched data for processing
+
+				EmbeddingListCompareRequestDTO qualificationRequestDTO = new EmbeddingListCompareRequestDTO();
+				qualificationRequestDTO.setJobAttributes(jobQualifications);
+				qualificationRequestDTO.setCandidateAttributes(candidateQualifications);
+
+				EmbeddingListCompareRequestDTO languageRequestDTO = new EmbeddingListCompareRequestDTO();
+				languageRequestDTO.setJobAttributes(jobLanguages);
+				languageRequestDTO.setCandidateAttributes(candidateLanguages);
+
+				EmbeddingListCompareRequestDTO jobTitlesRequestDTO = new EmbeddingListCompareRequestDTO();
+				jobTitlesRequestDTO.setJobAttributes(jobTitles);
+				jobTitlesRequestDTO.setCandidateAttributes(candidateJobTitles);
+
+				EmbeddingListTextCompareRequestDTO jobSkillsRequestDTO = new EmbeddingListTextCompareRequestDTO();
+				jobSkillsRequestDTO.setJobAttributes(jobDescription);
+				jobSkillsRequestDTO.setCandidateAttributes(candidateSkills);
+
+				EmbeddingTextCompareRequestDTO generalRequestDTO = new EmbeddingTextCompareRequestDTO();
+				generalRequestDTO.setJobAttributes(jobDataAll);
+				generalRequestDTO.setCandidateAttributes(candidateDetails);
+
+				List<CompletableFuture<EmbeddingListCompareResponseDTO>> innerFutures = new ArrayList<>();
+				innerFutures.add(compareEmbeddingsListAsyncMan(qualificationRequestDTO, parentContext));
+				innerFutures.add(compareEmbeddingsListAsyncMan(languageRequestDTO, parentContext));
+				innerFutures.add(compareEmbeddingsListTextAsyncMan(jobSkillsRequestDTO, parentContext));
+				innerFutures.add(compareEmbeddingsListAsyncMan(jobTitlesRequestDTO, parentContext));
+				innerFutures.add(compareEmbeddingsTextAsyncMan(generalRequestDTO, parentContext));
+
+				CompletableFuture<Void> allInnerFutures = CompletableFuture
+						.allOf(innerFutures.toArray(new CompletableFuture[0]));
+				// Manipulate the data
+				allInnerFutures.thenRun(() -> {
+					// Process the results
+					EmbeddingListCompareResponseDTO qualificationResponse = innerFutures.get(0).join();
+					EmbeddingListCompareResponseDTO languageResponse = innerFutures.get(1).join();
+					EmbeddingListCompareResponseDTO jobSkillsResponse = innerFutures.get(2).join();
+					EmbeddingListCompareResponseDTO jobTitlesResponse = innerFutures.get(3).join();
+					EmbeddingListCompareResponseDTO generalResponse = innerFutures.get(4).join();
+
+					// Compute jobSkill Score (Sum)
+					if (jobSkillsResponse.getSimilar_attributes() != null) {
+						Double jobSkillScore = jobSkillsResponse.getSimilar_attributes().stream().mapToDouble(
+								attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue()
+						).sum();
+						candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillScore);
+					}
+
+					// Compute jobTitle Score (Sum)
+					if (jobTitlesResponse.getSimilar_attributes() != null) {
+						Double jobTitleScore = jobTitlesResponse.getSimilar_attributes().stream().mapToDouble(
+								attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue()
+						).sum();
+						candidateMatchingDetailsResponseDTO.setJobTitleScore(jobTitleScore);
+					}
+
+					// Compute qualification Score (Sum)
+					Double qualificationScore = 0.0;
+					if (qualificationResponse.getSimilar_attributes() != null) {
+						 qualificationScore = qualificationResponse.getSimilar_attributes().stream().mapToDouble(
+								attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue()
+						).sum();
+						candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationScore);
+					}
+
+
+					// Compute general Score (Sum)
+					Double generalScore = 0.0;
+					if (generalResponse.getSimilar_attributes() != null) {
+						 generalScore = generalResponse.getSimilar_attributes().stream().mapToDouble(
+								attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue()
+						).sum();
+						candidateMatchingDetailsResponseDTO.setGeneralScore(generalScore);
+					}
+
+					// Compute compute score Sum all with weight
+					Double computedScore = 0.0;
+					computedScore = generalScore * 0.3 + qualificationScore * 0.2 + jobSkillScore * 0.2 + jobTitleScore * 0.3;
+
+				}).join();
+
+			});
+			// Wait for all asynchronous operations to complete
+			candidateFuture.join();
+		}
+
+		return null;
 	}
 
 	@Override
