@@ -25,4 +25,5 @@ public class CandidateMatchingDetailsResponseDTO {
 	private String jobCountryScoreDetails;
 	private Double generalScore;
 	private JsonNode generalScoreDetails;
+	private Double computedScore;
 }
