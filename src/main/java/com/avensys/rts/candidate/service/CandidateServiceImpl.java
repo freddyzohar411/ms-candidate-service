@@ -189,11 +189,11 @@ public class CandidateServiceImpl implements CandidateService {
 		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
 
-		String email = getEmailFromRequest(candidateRequestDTO);
-		if (email != null && !email.isEmpty()) {
-			if (candidateRepository.existsByEmailAndNotDeleted(email)) {
-				throw new ServiceException(
-						messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+		String newEmail = getEmailFromRequest(candidateRequestDTO);
+		if (newEmail != null && !newEmail.isEmpty()) {
+			String currentEmail = candidateEntity.getCandidateSubmissionData().get("email").asText();
+			if (!newEmail.equals(currentEmail) && candidateRepository.existsByEmailAndNotDeleted(newEmail)) {
+				throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
 			}
 		}
 
