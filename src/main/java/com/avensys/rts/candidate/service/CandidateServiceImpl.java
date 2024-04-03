@@ -633,7 +633,7 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CustomFieldsResponseDTO updateCustomView(Long id) {
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
-				"Account");
+				"Candidate");
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
@@ -685,6 +685,7 @@ public class CandidateServiceImpl implements CandidateService {
 		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
+		customFieldsEntity.setSelected(true);
 		return candidateCustomFieldsRepository.save(customFieldsEntity);
 	}
 
