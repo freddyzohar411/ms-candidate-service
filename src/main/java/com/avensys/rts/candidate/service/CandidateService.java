@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
+import com.avensys.rts.candidate.entity.CustomFieldsEntity;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
@@ -21,6 +22,10 @@ public interface CandidateService {
 	CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
 
 	CandidateResponseDTO getCandidateIfDraft();
+	
+	 CustomFieldsResponseDTO updateCustomView(Long id);
+	
+	List<CustomFieldsEntity> getAllCreatedCustomViews();
 
 	CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO);
 

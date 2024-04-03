@@ -624,12 +624,50 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	@Override
+	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
+
+		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate");
+		return customfields;
+	}
+
+	@Override
+	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
+				"Account");
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				candidateCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = candidateCustomFieldsRepository.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		candidateCustomFieldsRepository.save(customFieldsEntity.get());
+
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+
+	}
+
+	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
 		if (candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
 			throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_NAME_EXIST, null,
 					LocaleContextHolder.getLocale()));
 		}
+		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
+				"Candidate");
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					candidateCustomFieldsRepository.save(customView);
+				}
+			}
+
+		}
+
 		System.out.println(" Save candidate customFields : Service");
 		System.out.println(customFieldsRequestDTO);
 		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(

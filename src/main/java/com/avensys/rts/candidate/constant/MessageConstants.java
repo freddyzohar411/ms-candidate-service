@@ -14,6 +14,7 @@ public class MessageConstants {
   //new
 	public static final String CANDIDATE_CUSTOM_VIEW_NAME_EXIST = "candidate.customnameexist";
   	public static final String CANDIDATE_CUSTOM_VIEW = "candidate.customViewSaved";
+  	public static final String ACCOUNT_CUSTOM_VIEW_UPDATED = "candidate.customViewUpdated";
 
 	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
 
