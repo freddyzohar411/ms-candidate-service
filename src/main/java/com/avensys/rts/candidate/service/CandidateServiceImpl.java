@@ -20,7 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 //import java.util.ArrayList;
 //import java.util.List;
 import com.avensys.rts.candidate.APIClient.CertificationAPIClient;
@@ -34,6 +33,7 @@ import com.avensys.rts.candidate.APIClient.WorkExperienceAPIClient;
 import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.entity.CustomFieldsEntity;
+import com.avensys.rts.candidate.exception.DuplicateResourceException;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
