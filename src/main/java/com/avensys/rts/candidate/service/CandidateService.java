@@ -20,6 +20,8 @@ public interface CandidateService {
 	CandidateResponseDTO getCandidate(Integer id);
 
 	CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
+	
+	 public void softDelete(Long id);
 
 	CandidateResponseDTO getCandidateIfDraft();
 	

@@ -60,4 +60,10 @@ public class CustomFieldsEntity {
 	
 	@Column(name = "is_selected")
 	private  boolean isSelected = false ;
+	
+	@Column(name = "is_deleted")
+	private Boolean isDeleted = false;
+	
+	@Column(name = "is_active")
+	private Boolean isActive = true;
 }

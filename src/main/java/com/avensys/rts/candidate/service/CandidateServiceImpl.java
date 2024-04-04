@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 //import java.util.ArrayList;
 //import java.util.List;
 import com.avensys.rts.candidate.APIClient.CertificationAPIClient;
@@ -162,6 +163,8 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateRepository.save(candidateEntity);
 
 	}
+	
+	
 
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
@@ -626,14 +629,18 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
 
-		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate");
+		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate",false);
 		return customfields;
 	}
 
 	@Override
 	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		if (candidateCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
-				"Candidate");
+				"Candidate",false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
@@ -656,7 +663,7 @@ public class CandidateServiceImpl implements CandidateService {
 					LocaleContextHolder.getLocale()));
 		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
-				"Candidate");
+				"Candidate",false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {
@@ -703,6 +710,19 @@ public class CandidateServiceImpl implements CandidateService {
 		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;
+	}
+	
+	@Override
+	public void softDelete(Long id) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+
+		// Soft delete the custom view
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+
+		// Save custom view
+		candidateCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {
