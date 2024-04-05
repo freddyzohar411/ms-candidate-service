@@ -2,13 +2,6 @@ package com.avensys.rts.candidate.controller;
 
 import java.util.List;
 
-import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
-import com.avensys.rts.candidate.enums.Permission;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
-import com.avensys.rts.candidate.service.CandidateMappingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +20,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.constant.MessageConstants;
+import com.avensys.rts.candidate.entity.CustomFieldsEntity;
+import com.avensys.rts.candidate.enums.Permission;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.candidate.service.CandidateMappingService;
 import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.ResponseUtil;
 
@@ -286,6 +288,40 @@ public class CandidateController {
 		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.getCandidateMapping();
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+	
+	/*
+     * save all the fields in the custom view
+     */
+    @PostMapping("/save/customfields")
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+    	LOG.info("Save Candidate customFields: Controller");
+        CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.saveCustomFields(customFieldsRequestDTO);
+        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+    }
+    
+    @GetMapping("/customView/all")
+	public ResponseEntity<Object> getAllCreatedCustomViews() {
+    	LOG.info("Candidate get all custom views: Controller");
+    	List<CustomFieldsEntity> customViews = candidateNewService.getAllCreatedCustomViews();
+		return ResponseUtil.generateSuccessResponse(customViews, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+    
+    @PutMapping("/customView/update/{id}")
+	public ResponseEntity<Object> updateCustomView(@PathVariable Long id) {
+    	LOG.info("Candidate custom view update: Controller");
+		CustomFieldsResponseDTO response = candidateNewService.updateCustomView(id);
+		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+	}
+    
+    @DeleteMapping("/customView/delete/{id}")
+	public ResponseEntity<Object> softDeleteCustomView(@PathVariable Long id) {
+    	LOG.info("Custom view soft delete: Controller");
+		candidateNewService.softDelete(id);
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
 	}
 
 

@@ -1,41 +1,55 @@
 package com.avensys.rts.candidate.service;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-//import java.util.ArrayList;
-//import java.util.List;
-
-import com.avensys.rts.candidate.APIClient.*;
-import com.avensys.rts.candidate.constant.MessageConstants;
-import com.avensys.rts.candidate.model.FieldInformation;
-import com.avensys.rts.candidate.util.StringUtil;
-import com.avensys.rts.candidate.util.UserUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.context.MessageSource;
 
+//import java.util.ArrayList;
+//import java.util.List;
+import com.avensys.rts.candidate.APIClient.CertificationAPIClient;
+import com.avensys.rts.candidate.APIClient.DocumentAPIClient;
+import com.avensys.rts.candidate.APIClient.EducationDetailsAPIClient;
+import com.avensys.rts.candidate.APIClient.EmployerDetailsAPIClient;
+import com.avensys.rts.candidate.APIClient.FormSubmissionAPIClient;
+import com.avensys.rts.candidate.APIClient.LanguagesAPIClient;
+import com.avensys.rts.candidate.APIClient.UserAPIClient;
+import com.avensys.rts.candidate.APIClient.WorkExperienceAPIClient;
+import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CandidateEntity;
+import com.avensys.rts.candidate.entity.CustomFieldsEntity;
+import com.avensys.rts.candidate.exception.DuplicateResourceException;
+import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
+import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.FormSubmissionsResponseDTO;
+import com.avensys.rts.candidate.repository.CandidateCustomFieldsRepository;
 import com.avensys.rts.candidate.repository.CandidateRepository;
 import com.avensys.rts.candidate.util.JwtUtil;
 import com.avensys.rts.candidate.util.MappingUtil;
+import com.avensys.rts.candidate.util.StringUtil;
+import com.avensys.rts.candidate.util.UserUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
 
@@ -51,6 +65,9 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Autowired
 	private MessageSource messageSource;
+
+	@Autowired
+	private CandidateCustomFieldsRepository candidateCustomFieldsRepository;
 
 	@Autowired
 	private EducationDetailsAPIClient educationDetailsAPIClient;
@@ -84,7 +101,6 @@ public class CandidateServiceImpl implements CandidateService {
 						messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
 			}
 		}
-
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
 		System.out.println("Candidate ID: " + candidateEntity.getId());
 
@@ -150,6 +166,8 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateRepository.save(candidateEntity);
 
 	}
+	
+	
 
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
@@ -618,6 +636,105 @@ public class CandidateServiceImpl implements CandidateService {
 					false, true, pageRequest, searchFields, searchTerm);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
+	}
+
+	@Override
+	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
+
+		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate",false);
+		return customfields;
+	}
+
+	@Override
+	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		if (candidateCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+		}
+		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
+				"Candidate",false);
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				candidateCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = candidateCustomFieldsRepository.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		candidateCustomFieldsRepository.save(customFieldsEntity.get());
+
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+
+	}
+
+	@Override
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+
+		if (candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_NAME_EXIST, null,
+					LocaleContextHolder.getLocale()));
+		}
+		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
+				"Candidate",false);
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					candidateCustomFieldsRepository.save(customView);
+				}
+			}
+
+		}
+
+		System.out.println(" Save candidate customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
+				customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(candidateCustomFieldsEntity);
+	}
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(getUserId());
+		customFieldsEntity.setUpdatedBy(getUserId());
+		customFieldsEntity.setSelected(true);
+		return candidateCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(
+			CustomFieldsEntity candidateCustomFieldsEntity) {
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		// Converting String to List of String.
+		String columnNames = candidateCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
+		// customFieldsResponseDTO.setColumnName(candidateCustomFieldsEntity.getColumnName());
+		customFieldsResponseDTO.setCreatedBy(candidateCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(candidateCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(candidateCustomFieldsEntity.getType());
+		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
+	}
+	
+	@Override
+	public void softDelete(Long id) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+
+		// Soft delete the custom view
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+
+		// Save custom view
+		candidateCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {
