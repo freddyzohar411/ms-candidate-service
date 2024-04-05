@@ -472,6 +472,15 @@ public class CandidateServiceImpl implements CandidateService {
 		// Update the candidate with the embedding
 		candidateRepository.updateVector(candidateId.longValue(), "candidate_embeddings",
 				candidateEmbeddingData.getEmbedding());
+
+		// Get candidate
+		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(candidateId, false, true)
+				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+
+		// Update the candidate with the complete info
+		candidateEntity.setCandidateCompleteInfo(candidateDetails);
+		candidateRepository.save(candidateEntity);
+
 		return candidateHashMapData;
 	}
 
@@ -736,6 +745,7 @@ public class CandidateServiceImpl implements CandidateService {
 		String sortBy = candidateListingRequestDTO.getSortBy();
 		String sortDirection = candidateListingRequestDTO.getSortDirection();
 		Long jobId = candidateListingRequestDTO.getJobId();
+		String customQuery = candidateListingRequestDTO.getCustomQuery();
 
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -747,21 +757,35 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-		// Get Job Embeddings
-		CandidateResponseDTO.HttpResponse jobEmbeddingResponse = jobAPIClient.getEmbeddingsById(jobId, "default");
-		EmbeddingResponseDTO jobEmbedding = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
-				EmbeddingResponseDTO.class);
+		List<Float> jobEmbeddingData = new ArrayList<>();
+		if (customQuery != null && !customQuery.isEmpty()) {
+			// Get Embedding for custom query
+			EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+			embeddingRequestDTO.setText(customQuery);
+			CandidateResponseDTO.HttpResponse customQueryEmbeddingResponse = embeddingAPIClient
+					.getEmbeddingSinglePy(embeddingRequestDTO);
+			EmbeddingResponseDTO customQueryEmbedding = MappingUtil
+					.mapClientBodyToClass(customQueryEmbeddingResponse.getData(),
+							EmbeddingResponseDTO.class);
+			jobEmbeddingData = customQueryEmbedding.getEmbedding();
+		} else {
+			// Get Job Embeddings
+			CandidateResponseDTO.HttpResponse jobEmbeddingResponse = jobAPIClient.getEmbeddingsById(jobId, "default");
+			EmbeddingResponseDTO jobEmbedding = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
+					EmbeddingResponseDTO.class);
+			jobEmbeddingData = jobEmbedding.getEmbedding();
+		}
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = null;
 
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false,
-							false, true, pageRequest, jobEmbedding.getEmbedding());
+							false, true, pageRequest, jobEmbeddingData);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false,
-							false, true, pageRequest, jobEmbedding.getEmbedding());
+							false, true, pageRequest, jobEmbeddingData);
 		}
 
 		// Special evaluation for each candidate compute the other score in using concurrency
@@ -945,6 +969,7 @@ public class CandidateServiceImpl implements CandidateService {
 		String sortDirection = candidateListingRequestDTO.getSortDirection();
 		String searchTerm = candidateListingRequestDTO.getSearchTerm();
 		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+		searchFields.add("candidate_complete_info");
 		Long jobId = candidateListingRequestDTO.getJobId();
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {

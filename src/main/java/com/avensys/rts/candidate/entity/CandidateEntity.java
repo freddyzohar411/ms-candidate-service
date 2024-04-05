@@ -72,5 +72,8 @@ public class CandidateEntity {
 	@Column(name = "created_by_user_groups_id", columnDefinition="TEXT")
 	private String createdByUserGroupsId;
 
+	@Column(name = "candidate_complete_info", columnDefinition="TEXT")
+	private String candidateCompleteInfo;
+
 
 }

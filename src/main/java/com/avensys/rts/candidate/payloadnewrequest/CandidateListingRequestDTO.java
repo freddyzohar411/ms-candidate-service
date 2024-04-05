@@ -15,4 +15,5 @@ public class CandidateListingRequestDTO {
     private String searchTerm;
     private List<String> searchFields;
     private Long jobId;
+    private String customQuery;
 }
