@@ -94,9 +94,12 @@ public class CandidateServiceImpl implements CandidateService {
 		LOG.info("Candidate create : Service");
 		System.out.println("createCandidate" + candidateRequestDTO);
 		String email = getEmailFromRequest(candidateRequestDTO);
-		if (candidateRepository.existsByEmail(email)) {
-			throw new ServiceException(
-					messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+
+		if (email != null && !email.isEmpty()) {
+			if (candidateRepository.existsByEmailAndNotDeleted(email)) {
+				throw new ServiceException(
+						messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+			}
 		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
 		System.out.println("Candidate ID: " + candidateEntity.getId());
@@ -203,6 +206,15 @@ public class CandidateServiceImpl implements CandidateService {
 		// Get candidate data from candidate microservice
 		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Candidate not found"));
+
+		String newEmail = getEmailFromRequest(candidateRequestDTO);
+		if (newEmail != null && !newEmail.isEmpty()) {
+			String currentEmail = candidateEntity.getCandidateSubmissionData().get("email").asText();
+			if (!newEmail.equals(currentEmail) && candidateRepository.existsByEmailAndNotDeleted(newEmail)) {
+				throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+			}
+		}
+
 		// Update candidate data
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
 		candidateEntity.setLastName(candidateRequestDTO.getLastName());
