@@ -238,8 +238,11 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public Set<FieldInformation> getAllCandidatesFields() {
+//		List<CandidateEntity> candidateEntities = candidateRepository
+//				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
 		List<CandidateEntity> candidateEntities = candidateRepository
-				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
+				.findAllByIsDraftAndIsDeletedAndIsActive(true, false, true);
+
 		if (candidateEntities.isEmpty()) {
 			return null;
 		}

@@ -40,4 +40,7 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity,Integ
 			"WHERE candidate_submission_data ->> 'email' = :email AND is_deleted = false)", nativeQuery = true)
 	Boolean existsByEmailAndNotDeleted(@Param("email") String email);
 
+	@Query(value = "SELECT c FROM candidate c WHERE c.isDraft = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
+	List<CandidateEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
+
 }
