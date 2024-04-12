@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.avensys.rts.candidate.constant.MessageConstants;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,33 +20,20 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import com.avensys.rts.candidate.APIClient.*;
+import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
+import com.avensys.rts.candidate.entity.CustomFieldsEntity;
+import com.avensys.rts.candidate.exception.DuplicateResourceException;
 import com.avensys.rts.candidate.model.FieldInformation;
 import com.avensys.rts.candidate.payloadnewrequest.*;
 import com.avensys.rts.candidate.payloadnewresponse.*;
+import com.avensys.rts.candidate.repository.CandidateCustomFieldsRepository;
 import com.avensys.rts.candidate.repository.CandidateRepository;
 import com.avensys.rts.candidate.util.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
-import com.avensys.rts.candidate.entity.CustomFieldsEntity;
-import com.avensys.rts.candidate.exception.DuplicateResourceException;
-import com.avensys.rts.candidate.model.FieldInformation;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.FormSubmissionsResponseDTO;
-import com.avensys.rts.candidate.repository.CandidateCustomFieldsRepository;
-import com.avensys.rts.candidate.util.JwtUtil;
-import com.avensys.rts.candidate.util.MappingUtil;
-import com.avensys.rts.candidate.util.StringUtil;
-import com.avensys.rts.candidate.util.UserUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 
 @Service
 public class CandidateServiceImpl implements CandidateService {
@@ -97,8 +83,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 		if (email != null && !email.isEmpty()) {
 			if (candidateRepository.existsByEmailAndNotDeleted(email)) {
-				throw new ServiceException(
-						messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+				throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null,
+						LocaleContextHolder.getLocale()));
 			}
 		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
@@ -167,8 +153,6 @@ public class CandidateServiceImpl implements CandidateService {
 
 	}
 
-
-
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
 		CandidateResponseDTO.HttpResponse userResponse = userAPIClient.getUserByEmail(email);
@@ -211,7 +195,8 @@ public class CandidateServiceImpl implements CandidateService {
 		if (newEmail != null && !newEmail.isEmpty()) {
 			String currentEmail = candidateEntity.getCandidateSubmissionData().get("email").asText();
 			if (!newEmail.equals(currentEmail) && candidateRepository.existsByEmailAndNotDeleted(newEmail)) {
-				throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null, LocaleContextHolder.getLocale()));
+				throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_EXIST, null,
+						LocaleContextHolder.getLocale()));
 			}
 		}
 
@@ -240,8 +225,8 @@ public class CandidateServiceImpl implements CandidateService {
 	public Set<FieldInformation> getAllCandidatesFields() {
 //		List<CandidateEntity> candidateEntities = candidateRepository
 //				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
-		List<CandidateEntity> candidateEntities = candidateRepository
-				.findAllByIsDraftAndIsDeletedAndIsActive(true, false, true);
+		List<CandidateEntity> candidateEntities = candidateRepository.findAllByIsDraftAndIsDeletedAndIsActive(true,
+				false, true);
 
 		if (candidateEntities.isEmpty()) {
 			return null;
@@ -595,7 +580,6 @@ public class CandidateServiceImpl implements CandidateService {
 			fieldOfStudyRequestDTO.setJobAttributes(jobDataAll);
 			fieldOfStudyRequestDTO.setCandidateAttributes(candidateFieldOfStudy);
 
-
 			List<CompletableFuture<EmbeddingListCompareResponseDTO>> futures = new ArrayList<>();
 			futures.add(compareEmbeddingsListAsyncMan(qualificationRequestDTO, parentContext));
 			futures.add(compareEmbeddingsListAsyncMan(languageRequestDTO, parentContext));
@@ -658,32 +642,6 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateListingDataDTO;
 	}
 
-	// Candidate Listing page with search
-//	@Override
-//	public CandidateListingNewResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-//			String sortDirection, String searchTerm, List<String> searchFields) {
-//		// Get sort direction
-//		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
-//		if (sortDirection != null) {
-//			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-//		}
-//		if (sortBy == null) {
-//			sortBy = "updated_at";
-//			direction = Sort.Direction.DESC;
-//		}
-//		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-//		Page<CandidateNewEntity> candidateEntitiesPage = null;
-//		try {
-//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchNumeric(getUserId(), false, false,
-//					true, pageRequest, searchFields, searchTerm);
-//
-//		} catch (Exception e) {
-//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByAndSearchString(getUserId(), false, false,
-//					true, pageRequest, searchFields, searchTerm);
-//		}
-//		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
-//	}
-
 	private CandidateListingResponseDTO pageCandidateListingToCandidateListingResponseDTO(
 			Page<CandidateEntity> candidateNewEntitiesPage) {
 		CandidateListingResponseDTO candidateListingResponseDTO = new CandidateListingResponseDTO();
@@ -714,31 +672,6 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateListingResponseDTO.setCandidates(candidateListingDataDTOS);
 		return candidateListingResponseDTO;
 	}
-
-//	@Override
-//	public CandidateListingNewResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-//			String sortDirection) {
-//		// Get sort direction
-//		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
-//		if (sortDirection != null && !sortDirection.isEmpty()) {
-//			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-//		}
-//		if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
-//			sortBy = "updated_at";
-//			direction = Sort.Direction.DESC;
-//		}
-//		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-//		Page<CandidateNewEntity> candidateEntitiesPage = null;
-//		// Try with numeric first else try with string (jsonb)
-//		try {
-//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByNumeric(getUserId(), false, false, true,
-//					pageRequest);
-//		} catch (Exception e) {
-//			candidateEntitiesPage = candidateNewRepository.findAllByOrderByString(getUserId(), false, false, true,
-//					pageRequest);
-//		}
-//		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
-//	}
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
@@ -825,8 +758,7 @@ public class CandidateServiceImpl implements CandidateService {
 			CandidateResponseDTO.HttpResponse customQueryEmbeddingResponse = embeddingAPIClient
 					.getEmbeddingSinglePy(embeddingRequestDTO);
 			EmbeddingResponseDTO customQueryEmbedding = MappingUtil
-					.mapClientBodyToClass(customQueryEmbeddingResponse.getData(),
-							EmbeddingResponseDTO.class);
+					.mapClientBodyToClass(customQueryEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
 			jobEmbeddingData = customQueryEmbedding.getEmbedding();
 		} else {
 			// Get Job Embeddings
@@ -848,9 +780,10 @@ public class CandidateServiceImpl implements CandidateService {
 							false, true, pageRequest, jobEmbeddingData);
 		}
 
-		// Special evaluation for each candidate compute the other score in using concurrency
+		// Special evaluation for each candidate compute the other score in using
+		// concurrency
 		// Use this getMatchCandidateToJobData function, set sort to true
-//		getSimilarityData(candidateEntityWithSimilarityPage, jobId);
+		// getSimilarityData(candidateEntityWithSimilarityPage, jobId);
 
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
@@ -929,20 +862,26 @@ public class CandidateServiceImpl implements CandidateService {
 							.thenApply(v -> {
 								CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = new CandidateMatchingDetailsResponseDTO();
 
-								// Directly access future results without join(), since we are already in a completion stage.
+								// Directly access future results without join(), since we are already in a
+								// completion stage.
 								double jobSkillScore = jobSkillsFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue())
+										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+												: attribute.getScore().doubleValue())
 										.sum();
 								double jobTitleScore = jobTitlesFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue())
+										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+												: attribute.getScore().doubleValue())
 										.sum();
 								double qualificationScore = qualificationFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue())
+										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+												: attribute.getScore().doubleValue())
 										.sum();
-								double generalScore = generalFuture.join().getSimilar_attributes() != null ?
-										generalFuture.join().getSimilar_attributes().stream()
-												.mapToDouble(attribute -> attribute.getScore() == null ? 0.0 : attribute.getScore().doubleValue())
-												.sum() : 0.0;
+								double generalScore = generalFuture.join().getSimilar_attributes() != null
+										? generalFuture.join().getSimilar_attributes().stream()
+												.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+														: attribute.getScore().doubleValue())
+												.sum()
+										: 0.0;
 
 								// Set scores...
 								candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillScore);
@@ -952,14 +891,13 @@ public class CandidateServiceImpl implements CandidateService {
 
 								return candidateMatchingDetailsResponseDTO;
 							});
-					// This .thenCompose is crucial; it flattens the CompletableFuture<CompletableFuture<T>> to CompletableFuture<T>
-				}).thenCompose(Function.identity()))
-				.collect(Collectors.toList());
+					// This .thenCompose is crucial; it flattens the
+					// CompletableFuture<CompletableFuture<T>> to CompletableFuture<T>
+				}).thenCompose(Function.identity())).collect(Collectors.toList());
 
 		// Wait for all futures to complete and collect the results
 		List<CandidateMatchingDetailsResponseDTO> candidateMatchingDetailsResponseDTOList = futures.stream()
-				.map(CompletableFuture::join)
-				.collect(Collectors.toList());
+				.map(CompletableFuture::join).collect(Collectors.toList());
 
 		// Normalize score between max and min for each section
 		// Get the max and min for each section
@@ -1062,6 +1000,21 @@ public class CandidateServiceImpl implements CandidateService {
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
 
+	@Override
+	public void updateCandidateEmbeddingsAll() {
+		List<CandidateEntity> candidates = candidateRepository.findAllByEmbeddingIsNull();
+		candidates.forEach(System.out::println);
+		if (candidates != null && !candidates.isEmpty()) {
+			for (CandidateEntity candidate : candidates) {
+				try {
+					updateCandidateEmbeddings(candidate.getId());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	private CandidateSimilarityListingResponseDTO candidateSimilarityPageToCandidateSimilarityListingResponse(
 			Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage, Boolean toSort) {
 		CandidateSimilarityListingResponseDTO candidateSimilarityListingResponseDTO = new CandidateSimilarityListingResponseDTO();
@@ -1110,8 +1063,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
-
-		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate",false);
+		List<CustomFieldsEntity> customfields = candidateCustomFieldsRepository.findAllByUser(getUserId(), "Candidate",
+				false);
 		return customfields;
 	}
 
@@ -1122,7 +1075,7 @@ public class CandidateServiceImpl implements CandidateService {
 					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
 		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
-				"Candidate",false);
+				"Candidate", false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
@@ -1145,7 +1098,7 @@ public class CandidateServiceImpl implements CandidateService {
 					LocaleContextHolder.getLocale()));
 		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
-				"Candidate",false);
+				"Candidate", false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {

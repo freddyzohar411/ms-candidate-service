@@ -73,4 +73,6 @@ public interface CustomCandidateRepository {
 	Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
 			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector);
+
+	List<CandidateEntity> findAllByEmbeddingIsNull();
 }

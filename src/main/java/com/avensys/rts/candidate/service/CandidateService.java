@@ -6,20 +6,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
-import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
 import com.avensys.rts.candidate.entity.CustomFieldsEntity;
 import com.avensys.rts.candidate.model.FieldInformation;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMatchingDetailsResponseDTO;
+import com.avensys.rts.candidate.payloadnewrequest.*;
 import com.avensys.rts.candidate.payloadnewresponse.*;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
-import org.springframework.data.domain.Page;
-import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
 
 public interface CandidateService {
 	CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO);
@@ -28,29 +18,21 @@ public interface CandidateService {
 
 	CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
 
-	 public void softDelete(Long id);
+	public void softDelete(Long id);
 
 	CandidateResponseDTO getCandidateIfDraft();
-	
-	 CustomFieldsResponseDTO updateCustomView(Long id);
+
+	CustomFieldsResponseDTO updateCustomView(Long id);
 
 	List<CustomFieldsEntity> getAllCreatedCustomViews();
 
 	CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO);
-	
-	Set<FieldInformation>getAllCandidatesFields();
-	
-	void deleteDraftCandidate (Integer id);
-	
+
+	Set<FieldInformation> getAllCandidatesFields();
+
+	void deleteDraftCandidate(Integer id);
+
 	void softDeleteCandidate(Integer id);
-
-	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(CandidateListingRequestDTO candidateListingRequestDTO)
-			throws ExecutionException, InterruptedException;
-
-	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchAndSearchTerm(CandidateListingRequestDTO candidateListingRequestDTO)
-			throws ExecutionException, InterruptedException;
-
-	//List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 
 	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection,
 			Boolean getAll);
@@ -77,4 +59,11 @@ public interface CandidateService {
 
 	CandidateMatchingDetailsResponseDTO getMatchCandidateToJobData(Integer candidateId, Long jobId);
 
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(
+			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException;
+
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchAndSearchTerm(
+			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException;
+
+	void updateCandidateEmbeddingsAll();
 }

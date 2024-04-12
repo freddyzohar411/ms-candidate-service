@@ -895,18 +895,17 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public void insertVector(Long candidateId, String columnName, List<Float> vector) {
-		// Convert your List<Float> to the format expected by the database for the vector type
-		String vectorString = vector.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+		// Convert your List<Float> to the format expected by the database for the
+		// vector type
+		String vectorString = vector.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]"));
 
-		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
-		String sql = "INSERT INTO candidate (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as necessary
-
-		// Execute the native query with parameters, ensuring the correct format is applied
-		entityManager.createNativeQuery(sql)
-				.setParameter("id", candidateId)
-				.setParameter("columnName", columnName)
+		// Prepare your SQL query, ensuring the casting and formatting align with your
+		// database's requirements
+		String sql = "INSERT INTO candidate (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as
+																											// necessary
+		// Execute the native query with parameters, ensuring the correct format is
+		// applied
+		entityManager.createNativeQuery(sql).setParameter("id", candidateId).setParameter("columnName", columnName)
 				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
 				.executeUpdate();
 	}
@@ -914,37 +913,34 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	@Override
 	@Transactional
 	public void updateVector(Long candidateId, String columnName, List<Float> vector) {
-		// Convert your List<Float> to the format expected by the database for the vector type
-		String vectorString = vector.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+		// Convert your List<Float> to the format expected by the database for the
+		// vector type
+		String vectorString = vector.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]"));
 
-		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		// Prepare your SQL query, ensuring the casting and formatting align with your
+		// database's requirements
 		// Note the change to the SQL statement for updating instead of inserting
 		String sql = "UPDATE candidate SET " + columnName + " = CAST(:vectorText AS vector) WHERE id = :id";
 
-		// Execute the native query with parameters, ensuring the correct format is applied
-		entityManager.createNativeQuery(sql)
-				.setParameter("id", candidateId)
-				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+		// Execute the native query with parameters, ensuring the correct format is
+		// applied
+		entityManager.createNativeQuery(sql).setParameter("id", candidateId).setParameter("vectorText", vectorString)
 				.executeUpdate();
 	}
 
 	@Override
-	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarEmbeddingsCosine(List<Float> targetVector, String columnName) {
+	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarEmbeddingsCosine(List<Float> targetVector,
+			String columnName) {
 		// Convert List<Float> to the format expected by PostgreSQL's vector type
-		String vectorString = targetVector.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(",", "[", "]"));
+		String vectorString = targetVector.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]"));
 
 		// Prepare and execute the native SQL query
-		String sql = "SELECT id, 1 - (CAST(:queryVector AS vector) <=> " + columnName + ") AS cosine_similarity " +
-				"FROM candidate " +
-				"WHERE " + columnName + " IS NOT NULL " +  // This line ensures the embedding column is not null
+		String sql = "SELECT id, 1 - (CAST(:queryVector AS vector) <=> " + columnName + ") AS cosine_similarity "
+				+ "FROM candidate " + "WHERE " + columnName + " IS NOT NULL " + // This line ensures the embedding
+																				// column is not null
 				"ORDER BY cosine_similarity DESC LIMIT 10";
 
-		List<Object[]> resultObjects = entityManager.createNativeQuery(sql)
-				.setParameter("queryVector", vectorString)
+		List<Object[]> resultObjects = entityManager.createNativeQuery(sql).setParameter("queryVector", vectorString)
 				.getResultList();
 
 		List<CandidateJobSimilaritySearchResponseDTO> results = new ArrayList<>();
@@ -953,35 +949,31 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			Double similarityScore = (Double) result[1];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
-			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, similarityScore,0.0,0.0,0.0,0.0));
+			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, similarityScore, 0.0, 0.0, 0.0, 0.0));
 		}
 
 		return results;
 	}
 
-	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarSumScoresWithJobDescription(List<Float> jobDescriptionVector) {
+	public List<CandidateJobSimilaritySearchResponseDTO> findSimilarSumScoresWithJobDescription(
+			List<Float> jobDescriptionVector) {
 		// Convert List<Float> to the format expected by PostgreSQL's vector type
-		String jobDescriptionString = jobDescriptionVector.stream()
-				.map(Object::toString)
+		String jobDescriptionString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]"));
 
 		// Prepare and execute the native SQL query
-		String sql = "SELECT id, " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) + " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) + " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS similarity_sum, " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) AS basic_info_similarity, " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) AS education_similarity, " +
-				"1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS work_experience_similarity " +
-				"FROM candidate " +
-				"WHERE basic_info_embeddings IS NOT NULL AND " +
-				"education_embeddings IS NOT NULL AND " +
-				"work_experiences_embeddings IS NOT NULL " +
-				"ORDER BY similarity_sum DESC LIMIT 10";
+		String sql = "SELECT id, " + "1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) + "
+				+ "1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) + "
+				+ "1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS similarity_sum, "
+				+ "1 - (CAST(:jobDescriptionVector AS vector) <=> basic_info_embeddings) AS basic_info_similarity, "
+				+ "1 - (CAST(:jobDescriptionVector AS vector) <=> education_embeddings) AS education_similarity, "
+				+ "1 - (CAST(:jobDescriptionVector AS vector) <=> work_experiences_embeddings) AS work_experience_similarity "
+				+ "FROM candidate " + "WHERE basic_info_embeddings IS NOT NULL AND "
+				+ "education_embeddings IS NOT NULL AND " + "work_experiences_embeddings IS NOT NULL "
+				+ "ORDER BY similarity_sum DESC LIMIT 10";
 
 		List<Object[]> resultObjects = entityManager.createNativeQuery(sql)
-				.setParameter("jobDescriptionVector", jobDescriptionString)
-				.getResultList();
+				.setParameter("jobDescriptionVector", jobDescriptionString).getResultList();
 
 		List<CandidateJobSimilaritySearchResponseDTO> results = new ArrayList<>();
 		for (Object[] result : resultObjects) {
@@ -992,7 +984,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			Double workExperienceSimilarity = (Double) result[4];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
-			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, 0.0, similaritySum, basicInfoSimilarity, educationSimilarity, workExperienceSimilarity));
+			results.add(new CandidateJobSimilaritySearchResponseDTO(candidate, 0.0, similaritySum, basicInfoSimilarity,
+					educationSimilarity, workExperienceSimilarity));
 		}
 
 		return results;
@@ -1002,16 +995,18 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
 		// Conversion to PostgreSQL's array format for vector comparison
-		String vectorString = jobDescriptionVector.stream()
-				.map(Object::toString)
+		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
 
 		// Construct user condition for SQL query
 		String userCondition = userIds.isEmpty() ? "" : " AND created_by IN (:userIds)";
 
 		// Sorting logic
-		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
-		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
@@ -1022,10 +1017,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		}
 		// SQL Query String
 		String queryString = String.format(
-				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
-						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND c.candidate_embeddings IS NOT NULL " +
-						"ORDER BY %s %s",
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
+						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
+						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -1048,8 +1042,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Fetch each CandidateEntity by ID and construct the final DTOs
 		for (Object[] idAndScore : idAndScores) {
-			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
-			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
+			Number candidateIdNumber = (Number) idAndScore[0]; // Use Number as the common super type
+			Long candidateId = candidateIdNumber.longValue(); // Convert to Long
 			Double similarityScore = (Double) idAndScore[1];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
@@ -1060,8 +1054,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
-				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND candidate_embeddings IS NOT NULL",
+				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
+						+ "AND candidate_embeddings IS NOT NULL",
 				userCondition));
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
@@ -1079,16 +1073,18 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
 			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
 		// Conversion to PostgreSQL's array format for vector comparison
-		String vectorString = jobDescriptionVector.stream()
-				.map(Object::toString)
+		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
 
 		// Construct user condition for SQL query
 		String userCondition = userIds.isEmpty() ? "" : " AND created_by IN (:userIds)";
 
 		// Sorting logic
-		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
-		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
@@ -1100,10 +1096,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// SQL Query String
 		String queryString = String.format(
-				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
-						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND c.candidate_embeddings IS NOT NULL " +
-						"ORDER BY %s %s",
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
+						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
+						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -1126,8 +1121,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Fetch each CandidateEntity by ID and construct the final DTOs
 		for (Object[] idAndScore : idAndScores) {
-			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
-			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
+			Number candidateIdNumber = (Number) idAndScore[0]; // Use Number as the common super type
+			Long candidateId = candidateIdNumber.longValue(); // Convert to Long
 			Double similarityScore = (Double) idAndScore[1];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
@@ -1138,8 +1133,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
-				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s " +
-						"AND candidate_embeddings IS NOT NULL",
+				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
+						+ "AND candidate_embeddings IS NOT NULL",
 				userCondition));
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
@@ -1158,16 +1153,18 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
 			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector) {
 		// Conversion to PostgreSQL's array format for vector comparison
-		String vectorString = jobDescriptionVector.stream()
-				.map(Object::toString)
+		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
 
 		// Construct user condition for SQL query
 		String userCondition = userIds.isEmpty() ? "" : " AND created_by IN (:userIds)";
 
 		// Sorting logic
-		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
-		String sortDirection = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getDirection().name() : "ASC";
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "updated_at";
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
@@ -1198,10 +1195,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// SQL Query String
 		String queryString = String.format(
-				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c " +
-						"WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) " +
-						"AND c.candidate_embeddings IS NOT NULL " +
-						"ORDER BY %s %s",
+				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
+						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
+						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
 				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -1225,8 +1221,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Fetch each CandidateEntity by ID and construct the final DTOs
 		for (Object[] idAndScore : idAndScores) {
-			Number candidateIdNumber = (Number) idAndScore[0];  // Use Number as the common super type
-			Long candidateId = candidateIdNumber.longValue();   // Convert to Long
+			Number candidateIdNumber = (Number) idAndScore[0]; // Use Number as the common super type
+			Long candidateId = candidateIdNumber.longValue(); // Convert to Long
 			Double similarityScore = (Double) idAndScore[1];
 
 			CandidateEntity candidate = entityManager.find(CandidateEntity.class, candidateId);
@@ -1237,8 +1233,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
-				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) " +
-						"AND candidate_embeddings IS NOT NULL",
+				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
+						+ "AND candidate_embeddings IS NOT NULL",
 				userCondition, searchConditions.toString()));
 
 		countQuery.setParameter("isDeleted", isDeleted);
@@ -1250,9 +1246,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
-
 		// Return the paginated results
 		return new PageImpl<>(resultListWithSimilarity, pageable, countResult);
+	}
+
+	@Override
+	public List<CandidateEntity> findAllByEmbeddingIsNull() {
+		String queryString = "SELECT * FROM candidate WHERE candidate_embeddings IS NULL";
+		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
+		return query.getResultList();
 	}
 
 }

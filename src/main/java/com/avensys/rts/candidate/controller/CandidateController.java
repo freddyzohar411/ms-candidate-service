@@ -191,30 +191,6 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-//	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-//	@PostMapping("/listing/all")
-//	public ResponseEntity<Object> getCandidateListing(
-//			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
-//		LOG.info("Candidate get all fields: Controller");
-//		Integer page = candidateListingRequestDTO.getPage();
-//		Integer pageSize = candidateListingRequestDTO.getPageSize();
-//		String sortBy = candidateListingRequestDTO.getSortBy();
-//		String sortDirection = candidateListingRequestDTO.getSortDirection();
-//		String searchTerm = candidateListingRequestDTO.getSearchTerm();
-//		Boolean isAdmin = userUtil.checkIsAdmin();
-//		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
-//		try {
-//			return ResponseUtil.generateSuccessResponse(
-//					candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(candidateListingRequestDTO),
-//					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-//							LocaleContextHolder.getLocale()));
-//		} catch (ExecutionException e) {
-//			throw new RuntimeException(e);
-//		} catch (InterruptedException e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
-
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/similarity-search")
 	public ResponseEntity<Object> getCandidateListingMatch(
@@ -235,11 +211,11 @@ public class CandidateController {
 			}
 		}
 		return ResponseUtil.generateSuccessResponse(
-				candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(candidateListingRequestDTO),
+				candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(
+						candidateListingRequestDTO),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/all")
@@ -323,7 +299,6 @@ public class CandidateController {
 
 	/**
 	 * Get Candidate Mapping
-	 *
 	 */
 	@GetMapping("/mapping/get")
 	public ResponseEntity<Object> getCandidateMapping() {
@@ -339,6 +314,10 @@ public class CandidateController {
 		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+//		candidateNewService.updateCandidateEmbeddingsAll();
+//		return ResponseUtil.generateSuccessResponse(null,
+//				HttpStatus.OK,
+//				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	@PostMapping("similarity-search/job")
@@ -351,15 +330,15 @@ public class CandidateController {
 	}
 
 	@GetMapping("match/candidates/{candidateId}/jobs/{jobId}")
-	public ResponseEntity<Object> getMatchCandidateToJobData(@PathVariable Integer candidateId, @PathVariable Long jobId) {
+	public ResponseEntity<Object> getMatchCandidateToJobData(@PathVariable Integer candidateId,
+			@PathVariable Long jobId) {
 		LOG.info("Candidate match to job: Controller");
-		System.out.println("Candidate Id: " + candidateId + " Job Id: " + jobId);
 		CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = candidateNewService
 				.getMatchCandidateToJobData(candidateId, jobId);
-		return ResponseUtil.generateSuccessResponse(candidateMatchingDetailsResponseDTO,
-				HttpStatus.OK,
+		return ResponseUtil.generateSuccessResponse(candidateMatchingDetailsResponseDTO, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
 	/*
 	 * save all the fields in the custom view
 	 */
