@@ -34,6 +34,7 @@ import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.candidate.service.CandidateMappingService;
 import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.ResponseUtil;
+import com.avensys.rts.candidate.util.UserUtil;
 
 import jakarta.validation.Valid;
 
@@ -47,12 +48,18 @@ import jakarta.validation.Valid;
 public class CandidateController {
 
 	private final Logger LOG = LoggerFactory.getLogger(CandidateController.class);
+
 	@Autowired
 	private CandidateServiceImpl candidateNewService;
+
 	@Autowired
 	private MessageSource messageSource;
+
 	@Autowired
 	private CandidateMappingService candidateMappingService;
+
+	@Autowired
+	private UserUtil userUtil;
 
 	public CandidateController(CandidateServiceImpl candidateNewService, MessageSource messageSource) {
 		this.candidateNewService = candidateNewService;
@@ -178,7 +185,7 @@ public class CandidateController {
 	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-	@PostMapping("/listing")
+	@PostMapping("/listing/all")
 	public ResponseEntity<Object> getCandidateListing(
 			@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
 		LOG.info("Candidate get all fields: Controller");
@@ -187,40 +194,18 @@ public class CandidateController {
 		String sortBy = accountListingRequestDTO.getSortBy();
 		String sortDirection = accountListingRequestDTO.getSortDirection();
 		String searchTerm = accountListingRequestDTO.getSearchTerm();
+		Boolean isAdmin = userUtil.checkIsAdmin();
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
-		if (searchTerm == null || searchTerm.isEmpty()) {
-			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, false),
-					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-							LocaleContextHolder.getLocale()));
-		}
-		return ResponseUtil.generateSuccessResponse(
-				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, false),
-				HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
-	}
 
-	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-	@PostMapping("/listing/all")
-	public ResponseEntity<Object> getCandidateListingAll(
-			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
-		LOG.info("Candidate get all candidate listing: Controller");
-		Integer page = candidateListingRequestDTO.getPage();
-		Integer pageSize = candidateListingRequestDTO.getPageSize();
-		String sortBy = candidateListingRequestDTO.getSortBy();
-		String sortDirection = candidateListingRequestDTO.getSortDirection();
-		String searchTerm = candidateListingRequestDTO.getSearchTerm();
-		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, true),
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin),
 					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
 							LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, true),
+						searchFields, isAdmin),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -271,9 +256,11 @@ public class CandidateController {
 	 *
 	 */
 	@PostMapping("/mapping/save")
-	public ResponseEntity<Object> saveCandidateMapping(@RequestBody CandidateMappingRequestDTO candidateListingDataDTO) {
+	public ResponseEntity<Object> saveCandidateMapping(
+			@RequestBody CandidateMappingRequestDTO candidateListingDataDTO) {
 		LOG.info("Candidate save mapping: Controller");
-		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.saveCandidateMapping(candidateListingDataDTO);
+		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService
+				.saveCandidateMapping(candidateListingDataDTO);
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.CREATED,
 				messageSource.getMessage(MessageConstants.CANDIDATE_CREATED, null, LocaleContextHolder.getLocale()));
 	}
@@ -289,69 +276,40 @@ public class CandidateController {
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	/*
-     * save all the fields in the custom view
-     */
-    @PostMapping("/save/customfields")
-    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
-    	LOG.info("Save Candidate customFields: Controller");
-        CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.saveCustomFields(customFieldsRequestDTO);
-        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
-    }
-    
-    @GetMapping("/customView/all")
+	 * save all the fields in the custom view
+	 */
+	@PostMapping("/save/customfields")
+	public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+		LOG.info("Save Candidate customFields: Controller");
+		CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.saveCustomFields(customFieldsRequestDTO);
+		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource
+				.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/customView/all")
 	public ResponseEntity<Object> getAllCreatedCustomViews() {
-    	LOG.info("Candidate get all custom views: Controller");
-    	List<CustomFieldsEntity> customViews = candidateNewService.getAllCreatedCustomViews();
+		LOG.info("Candidate get all custom views: Controller");
+		List<CustomFieldsEntity> customViews = candidateNewService.getAllCreatedCustomViews();
 		return ResponseUtil.generateSuccessResponse(customViews, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-    
-    @PutMapping("/customView/update/{id}")
+
+	@PutMapping("/customView/update/{id}")
 	public ResponseEntity<Object> updateCustomView(@PathVariable Long id) {
-    	LOG.info("Candidate custom view update: Controller");
+		LOG.info("Candidate custom view update: Controller");
 		CustomFieldsResponseDTO response = candidateNewService.updateCustomView(id);
-		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, messageSource
+				.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
-    
-    @DeleteMapping("/customView/delete/{id}")
+
+	@DeleteMapping("/customView/delete/{id}")
 	public ResponseEntity<Object> softDeleteCustomView(@PathVariable Long id) {
-    	LOG.info("Custom view soft delete: Controller");
+		LOG.info("Custom view soft delete: Controller");
 		candidateNewService.softDelete(id);
-		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
+				.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
 	}
 
-
-//
-//	@GetMapping("/search")
-//	public ResponseEntity<Object>searchCandidate(@RequestParam( value = "query",required = false)String query){
-//	LOG.info("Candidate search: Controller");
-//	if (query != null) {
-//		System.out.println("Query: " + query);
-//		String regex = "(\\w+)([><]=?|!=|=)(\\w+)";
-//		Pattern pattern = Pattern.compile(regex);
-//		Matcher matcher = pattern.matcher(query);
-//		
-//		while (matcher.find()) {
-//			String fieldName = matcher.group(1);
-//            String operator = matcher.group(2);
-//            String value = matcher.group(3);
-//            
-//            //Now you have fieldName, operator, and value for each key-value pair
-//            System.out.println("Field Name: " + fieldName);
-//            System.out.println("Operator: " + operator);
-//            System.out.println("Value: " + value);
-//		}
-//	}
-//	 if (query == null || query.isEmpty()) {
-//		 return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesByUser(false, false) ,HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//	 }
-//	 return ResponseUtil.generateSuccessResponse(candidateNewService.getAllCandidatesWithSearch(query),HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//	}
-
-//	
-//
 }
