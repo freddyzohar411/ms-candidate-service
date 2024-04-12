@@ -191,29 +191,29 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-	@PostMapping("/listing/all")
-	public ResponseEntity<Object> getCandidateListing(
-			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
-		LOG.info("Candidate get all fields: Controller");
-		Integer page = candidateListingRequestDTO.getPage();
-		Integer pageSize = candidateListingRequestDTO.getPageSize();
-		String sortBy = candidateListingRequestDTO.getSortBy();
-		String sortDirection = candidateListingRequestDTO.getSortDirection();
-		String searchTerm = candidateListingRequestDTO.getSearchTerm();
-		Boolean isAdmin = userUtil.checkIsAdmin();
-		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
-		try {
-			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(candidateListingRequestDTO),
-					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-							LocaleContextHolder.getLocale()));
-		} catch (ExecutionException e) {
-			throw new RuntimeException(e);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
+//	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+//	@PostMapping("/listing/all")
+//	public ResponseEntity<Object> getCandidateListing(
+//			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+//		LOG.info("Candidate get all fields: Controller");
+//		Integer page = candidateListingRequestDTO.getPage();
+//		Integer pageSize = candidateListingRequestDTO.getPageSize();
+//		String sortBy = candidateListingRequestDTO.getSortBy();
+//		String sortDirection = candidateListingRequestDTO.getSortDirection();
+//		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+//		Boolean isAdmin = userUtil.checkIsAdmin();
+//		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+//		try {
+//			return ResponseUtil.generateSuccessResponse(
+//					candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(candidateListingRequestDTO),
+//					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+//							LocaleContextHolder.getLocale()));
+//		} catch (ExecutionException e) {
+//			throw new RuntimeException(e);
+//		} catch (InterruptedException e) {
+//			throw new RuntimeException(e);
+//		}
+//	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
 	@PostMapping("/listing/similarity-search")
@@ -241,29 +241,30 @@ public class CandidateController {
 	}
 
 
-//	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-//	@PostMapping("/listing/all")
-//	public ResponseEntity<Object> getCandidateListingAll(
-//			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
-//		LOG.info("Candidate get all candidate listing: Controller");
-//		Integer page = candidateListingRequestDTO.getPage();
-//		Integer pageSize = candidateListingRequestDTO.getPageSize();
-//		String sortBy = candidateListingRequestDTO.getSortBy();
-//		String sortDirection = candidateListingRequestDTO.getSortDirection();
-//		String searchTerm = candidateListingRequestDTO.getSearchTerm();
-//		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
-//		if (searchTerm == null || searchTerm.isEmpty()) {
-//			return ResponseUtil.generateSuccessResponse(
-//					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin),
-//					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
-//							LocaleContextHolder.getLocale()));
-//		}
-//		return ResponseUtil.generateSuccessResponse(
-//				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-//						searchFields, isAdmin),
-//				HttpStatus.OK,
-//				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//	}
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+	@PostMapping("/listing/all")
+	public ResponseEntity<Object> getCandidateListingAll(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+		LOG.info("Candidate get all candidate listing: Controller");
+		Integer page = candidateListingRequestDTO.getPage();
+		Integer pageSize = candidateListingRequestDTO.getPageSize();
+		String sortBy = candidateListingRequestDTO.getSortBy();
+		String sortDirection = candidateListingRequestDTO.getSortDirection();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+		Boolean isAdmin = userUtil.checkIsAdmin();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin),
+					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+							LocaleContextHolder.getLocale()));
+		}
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+						searchFields, isAdmin),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
 
 	/**
 	 * Get candidate data by id
