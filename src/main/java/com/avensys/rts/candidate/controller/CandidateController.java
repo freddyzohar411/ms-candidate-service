@@ -314,10 +314,14 @@ public class CandidateController {
 		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-//		candidateNewService.updateCandidateEmbeddingsAll();
-//		return ResponseUtil.generateSuccessResponse(null,
-//				HttpStatus.OK,
-//				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("create-embeddings/all")
+	public ResponseEntity<Object> createCandidateEmbeddingsAll() {
+		LOG.info("Candidate create embeddings: Controller");
+		candidateNewService.updateCandidateEmbeddingsAll();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	@PostMapping("similarity-search/job")

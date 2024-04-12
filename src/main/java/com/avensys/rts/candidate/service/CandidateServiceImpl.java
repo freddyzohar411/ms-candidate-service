@@ -1003,16 +1003,28 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public void updateCandidateEmbeddingsAll() {
 		List<CandidateEntity> candidates = candidateRepository.findAllByEmbeddingIsNull();
-		candidates.forEach(System.out::println);
 		if (candidates != null && !candidates.isEmpty()) {
+			System.out.println("Total candidates to update: " + candidates.size());
+			int count = 0;
+			int passedCount = 0;
+			int failedCount = 0;
 			for (CandidateEntity candidate : candidates) {
 				try {
 					updateCandidateEmbeddings(candidate.getId());
+					passedCount++;
 				} catch (Exception e) {
 					e.printStackTrace();
+					failedCount++;
 				}
+				count++;
+				System.out.println("Updated: " + count + " candidates");
 			}
+			System.out.println("All candidates updated...");
+			System.out.println("Total candidates: " + candidates.size());
+			System.out.println("Total passed: " + passedCount);
+			System.out.println("Total failed: " + failedCount);
 		}
+
 	}
 
 	private CandidateSimilarityListingResponseDTO candidateSimilarityPageToCandidateSimilarityListingResponse(
