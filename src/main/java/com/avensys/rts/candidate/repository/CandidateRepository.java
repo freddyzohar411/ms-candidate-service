@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
+import org.springframework.data.repository.query.Param;
 
 public interface CandidateRepository extends JpaRepository<CandidateEntity,Integer>,CustomCandidateRepository {
 	@Query(value = "SELECT c FROM candidate c WHERE c.id = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
@@ -26,5 +27,20 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity,Integ
 
 	@Query(value = "SELECT c FROM candidate c WHERE c.id = ?1 AND c.isDraft = ?2 AND c.isActive = ?3")
 	Optional<CandidateEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
+
+	// Check if email exists in candidate_submission_data.email
+	@Query(value = "SELECT EXISTS(" +
+			"SELECT 1 FROM candidate " +
+			"WHERE candidate_submission_data ->> 'email' = :email)", nativeQuery = true)
+	Boolean existsByEmail(@Param("email") String email);
+
+	// Check if email exists in candidate_submission_data.email and is not deleted
+	@Query(value = "SELECT EXISTS(" +
+			"SELECT 1 FROM candidate " +
+			"WHERE candidate_submission_data ->> 'email' = :email AND is_deleted = false)", nativeQuery = true)
+	Boolean existsByEmailAndNotDeleted(@Param("email") String email);
+
+	@Query(value = "SELECT c FROM candidate c WHERE c.isDraft = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
+	List<CandidateEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
 
 }

@@ -1,34 +1,39 @@
 package com.avensys.rts.candidate.payloadnewresponse;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-@Data
+import lombok.Setter;
+
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CandidateResponseDTO {
 	private Integer id;
-    private String firstName;
-    private String lastName;
-    private Integer formId;
-    private String submissionData;
-    private String createdBy;
-    private String updatedBy;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private JsonNode candidateSubmissionData;
+	private String firstName;
+	private String lastName;
+	private Integer formId;
+	private String submissionData;
+	private String createdBy;
+	private String updatedBy;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	private JsonNode candidateSubmissionData;
 
 	/**
-	 * @author Kotaiah nalleboina
-	 * This class is used to create a custom response for the API calls.
-	 * It is used to return a custom response to the client.
+	 * @author Kotaiah nalleboina This class is used to create a custom response for
+	 *         the API calls. It is used to return a custom response to the client.
 	 */
 
-	@Data
+	@Setter
+	@Getter
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class HttpResponse {
@@ -40,7 +45,8 @@ public class CandidateResponseDTO {
 		private LocalDateTime timestamp = LocalDateTime.now();
 	}
 
-	@Data
+	@Setter
+	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)

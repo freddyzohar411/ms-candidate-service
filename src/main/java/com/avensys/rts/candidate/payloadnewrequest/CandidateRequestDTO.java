@@ -1,10 +1,12 @@
 package com.avensys.rts.candidate.payloadnewrequest;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CandidateRequestDTO {
@@ -34,9 +36,9 @@ public class CandidateRequestDTO {
 	private String source;
 	private String referrersName;
 	private boolean emailOptOut;
-	
+
 	// Form Submission
-    private String formData;
-    private Integer formId;
+	private String formData;
+	private Integer formId;
 
 }
