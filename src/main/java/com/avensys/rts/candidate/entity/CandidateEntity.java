@@ -28,50 +28,54 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CandidateEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
 	private int id;
-
+	
 	@Column(name = "firstName", length = 50, nullable = false)
 	private String firstName;
-
+	
 	@Column(name = "lastName", length = 50, nullable = false)
 	private String lastName;
-
-	@Column(name = "is_deleted", columnDefinition = "boolean default false")
+	
+	@Column (name = "is_deleted", columnDefinition = "boolean default false")
 	private boolean isDeleted = false;
-
-	@Column(name = "is_draft")
+	
+	@Column (name = "is_draft")
 	private boolean isDraft = true;
-
-	@Column(name = "created_by")
+	
+	@Column (name = "created_by")
 	private Integer createdBy;
-
-	@Column(name = "is_active")
+	
+	@Column (name = "is_active")
 	private boolean isActive = true;
-
+	
 	@CreationTimestamp
-	@Column(name = "created_at")
+    @Column (name = "created_at")
 	private LocalDateTime createdAt;
-
-	@Column(name = "updated_by")
+	
+	@Column (name = "updated_by")
 	private Integer updatedBy;
-
+	
 	@UpdateTimestamp
-	@Column(name = "updated_at")
+    @Column(name = "updated_at")
 	private LocalDateTime updatedAt;
-
-	@Column(name = "form_id")
+	
+	@Column(name= "form_id")
 	private Integer formId;
-
+	
 	@Column(name = "form_submission_id")
 	private Integer formSubmissionId;
-
+	
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "candidate_submission_data")
 	private JsonNode candidateSubmissionData;
 
-	@Column(name = "created_by_user_groups_id", columnDefinition = "TEXT")
+	@Column(name = "created_by_user_groups_id", columnDefinition="TEXT")
 	private String createdByUserGroupsId;
+
+	@Column(name = "candidate_complete_info", columnDefinition="TEXT")
+	private String candidateCompleteInfo;
+
 
 }

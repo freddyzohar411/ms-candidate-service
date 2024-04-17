@@ -1,7 +1,14 @@
 package com.avensys.rts.candidate.controller;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
+import com.avensys.rts.candidate.enums.Permission;
+import com.avensys.rts.candidate.payloadnewrequest.*;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
+import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
+import com.avensys.rts.candidate.service.CandidateMappingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,18 +192,43 @@ public class CandidateController {
 	}
 
 	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
-	@PostMapping("/listing/all")
-	public ResponseEntity<Object> getCandidateListing(
-			@RequestBody CandidateListingRequestDTO accountListingRequestDTO) {
+	@PostMapping("/listing/similarity-search")
+	public ResponseEntity<Object> getCandidateListingMatch(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO)
+			throws ExecutionException, InterruptedException {
 		LOG.info("Candidate get all fields: Controller");
-		Integer page = accountListingRequestDTO.getPage();
-		Integer pageSize = accountListingRequestDTO.getPageSize();
-		String sortBy = accountListingRequestDTO.getSortBy();
-		String sortDirection = accountListingRequestDTO.getSortDirection();
-		String searchTerm = accountListingRequestDTO.getSearchTerm();
-		Boolean isAdmin = userUtil.checkIsAdmin();
-		List<String> searchFields = accountListingRequestDTO.getSearchFields();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			try {
+				return ResponseUtil.generateSuccessResponse(
+						candidateNewService.getCandidateListingPageWithSimilaritySearch(candidateListingRequestDTO),
+						HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
+								LocaleContextHolder.getLocale()));
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateListingPageWithSimilaritySearchAndSearchTerm(
+						candidateListingRequestDTO),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
 
+	@RequiresAllPermissions({ Permission.CANDIDATE_READ })
+	@PostMapping("/listing/all")
+	public ResponseEntity<Object> getCandidateListingAll(
+			@RequestBody CandidateListingRequestDTO candidateListingRequestDTO) {
+		LOG.info("Candidate get all candidate listing: Controller");
+		Integer page = candidateListingRequestDTO.getPage();
+		Integer pageSize = candidateListingRequestDTO.getPageSize();
+		String sortBy = candidateListingRequestDTO.getSortBy();
+		String sortDirection = candidateListingRequestDTO.getSortDirection();
+		String searchTerm = candidateListingRequestDTO.getSearchTerm();
+		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+		Boolean isAdmin = userUtil.checkIsAdmin();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin),
@@ -267,7 +299,6 @@ public class CandidateController {
 
 	/**
 	 * Get Candidate Mapping
-	 *
 	 */
 	@GetMapping("/mapping/get")
 	public ResponseEntity<Object> getCandidateMapping() {
@@ -275,6 +306,41 @@ public class CandidateController {
 		CandidateMappingResponseDTO candidateMappingResponseDTO = candidateMappingService.getCandidateMapping();
 		return ResponseUtil.generateSuccessResponse(candidateMappingResponseDTO, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("create-embeddings/{candidateId}")
+	public ResponseEntity<Object> createCandidateEmbeddings(@PathVariable Integer candidateId) {
+		LOG.info("Candidate create embeddings: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.updateCandidateEmbeddings(candidateId),
+				HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("create-embeddings/all")
+	public ResponseEntity<Object> createCandidateEmbeddingsAll() {
+		LOG.info("Candidate create embeddings: Controller");
+		candidateNewService.updateCandidateEmbeddingsAll();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("similarity-search/job")
+	public ResponseEntity<Object> similaritySearch(
+			@RequestBody CandidateJobSimilaritySearchRequestDTO jobSimilaritySearchRequestDTO) {
+		LOG.info("Candidate similarity search: Controller");
+		return ResponseUtil.generateSuccessResponse(
+				candidateNewService.getCandidateJobSimilaritySearch(jobSimilaritySearchRequestDTO), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("match/candidates/{candidateId}/jobs/{jobId}")
+	public ResponseEntity<Object> getMatchCandidateToJobData(@PathVariable Integer candidateId,
+			@PathVariable Long jobId) {
+		LOG.info("Candidate match to job: Controller");
+		CandidateMatchingDetailsResponseDTO candidateMatchingDetailsResponseDTO = candidateNewService
+				.getMatchCandidateToJobData(candidateId, jobId);
+		return ResponseUtil.generateSuccessResponse(candidateMatchingDetailsResponseDTO, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 	/*

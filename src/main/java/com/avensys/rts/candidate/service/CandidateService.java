@@ -3,16 +3,13 @@ package com.avensys.rts.candidate.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import com.avensys.rts.candidate.entity.CandidateEntity;
 import com.avensys.rts.candidate.entity.CustomFieldsEntity;
 import com.avensys.rts.candidate.model.FieldInformation;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingDataDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateListingResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
-import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.candidate.payloadnewrequest.*;
+import com.avensys.rts.candidate.payloadnewresponse.*;
 
 public interface CandidateService {
 	CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO);
@@ -20,13 +17,13 @@ public interface CandidateService {
 	CandidateResponseDTO getCandidate(Integer id);
 
 	CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
-	
-	 public void softDelete(Long id);
+
+	public void softDelete(Long id);
 
 	CandidateResponseDTO getCandidateIfDraft();
-	
-	 CustomFieldsResponseDTO updateCustomView(Long id);
-	
+
+	CustomFieldsResponseDTO updateCustomView(Long id);
+
 	List<CustomFieldsEntity> getAllCreatedCustomViews();
 
 	CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO);
@@ -55,4 +52,18 @@ public interface CandidateService {
 
 	HashMap<String, List<HashMap<String, String>>> getAllCandidatesFieldsAll();
 
+	HashMap<String, Object> updateCandidateEmbeddings(Integer candidateId);
+
+	List<CandidateJobSimilaritySearchResponseDTO> getCandidateJobSimilaritySearch(
+			CandidateJobSimilaritySearchRequestDTO candidateJobSimilaritySearchRequestDTO);
+
+	CandidateMatchingDetailsResponseDTO getMatchCandidateToJobData(Integer candidateId, Long jobId);
+
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(
+			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException;
+
+	CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearchAndSearchTerm(
+			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException;
+
+	void updateCandidateEmbeddingsAll();
 }
