@@ -770,13 +770,19 @@ public class CandidateServiceImpl implements CandidateService {
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = null;
 
+		Boolean isAdmin = userUtil.checkIsAdmin();
+		List<Long> userIds = new ArrayList<>();
+		if (!isAdmin) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
+
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false,
+					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false,
 							false, true, pageRequest, jobEmbeddingData);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userUtil.getUsersIdUnderManager(), false,
+					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false,
 							false, true, pageRequest, jobEmbeddingData);
 		}
 
@@ -986,15 +992,21 @@ public class CandidateServiceImpl implements CandidateService {
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = null;
 
+		Boolean isAdmin = userUtil.checkIsAdmin();
+		List<Long> userIds = new ArrayList<>();
+		if (!isAdmin) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
+
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
-							userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields,
+							userIds, false, false, true, pageRequest, searchFields,
 							searchTerm, jobEmbedding.getEmbedding());
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
-							userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields,
+							userIds, false, false, true, pageRequest, searchFields,
 							searchTerm, jobEmbedding.getEmbedding());
 		}
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
