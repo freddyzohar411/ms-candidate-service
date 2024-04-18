@@ -225,7 +225,7 @@ public class CandidateServiceImpl implements CandidateService {
 	public Set<FieldInformation> getAllCandidatesFields() {
 //		List<CandidateEntity> candidateEntities = candidateRepository
 //				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
-		List<CandidateEntity> candidateEntities = candidateRepository.findAllByIsDraftAndIsDeletedAndIsActive(true,
+		List<CandidateEntity> candidateEntities = candidateRepository.findAllByIsDraftAndIsDeletedAndIsActive(false,
 				false, true);
 
 		if (candidateEntities.isEmpty()) {
