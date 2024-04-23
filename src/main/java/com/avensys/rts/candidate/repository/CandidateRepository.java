@@ -43,4 +43,6 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity,Integ
 	@Query(value = "SELECT c FROM candidate c WHERE c.isDraft = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
 	List<CandidateEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
 
+	@Query(value = "SELECT c FROM candidate c WHERE c.id IN (?1) AND c.isDraft = ?2 AND c.isDeleted = ?3 AND c.isActive = ?4")
+	List<CandidateEntity> findAllByIdsAndDraftAndDeleted(List<Integer> candidateIds, boolean draft, boolean isDeleted, boolean isActive);
 }
