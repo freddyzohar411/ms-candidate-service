@@ -25,6 +25,7 @@ import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
 import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
 import com.avensys.rts.candidate.service.CandidateServiceImpl;
 import com.avensys.rts.candidate.util.JwtUtil;
+import com.avensys.rts.candidate.util.UserUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -48,6 +49,9 @@ public class CandidateControllerTest {
 	
 	@Mock
 	MessageSource messageSource;
+	
+	@Mock
+	UserUtil userUtil;
 	
 	@Mock
 	CandidateServiceImpl candidateServiceImpl;
@@ -160,7 +164,7 @@ public class CandidateControllerTest {
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		ObjectWriter writer = mapper.writer().withDefaultPrettyPrinter();
 		String requestJson = writer.writeValueAsString(candidateListingRequestDTO);
-		RequestBuilder request = MockMvcRequestBuilders.post("/api/candidates/listing").content(requestJson)
+		RequestBuilder request = MockMvcRequestBuilders.post("/api/candidates/listing/similarity-search").content(requestJson)
 				.contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON);
 		mockMvc.perform(request).andExpect(status().isOk()).andReturn();
 	}

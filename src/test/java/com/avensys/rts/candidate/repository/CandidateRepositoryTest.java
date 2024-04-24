@@ -35,7 +35,7 @@ public class CandidateRepositoryTest {
 
 	@BeforeEach
 	void setUp() {
-		candidateEntity = new CandidateEntity(1, "firstName","lastName",false,true,1,true,createdAt,1,updatedAt,1,1,candidateSubmissionData,"createdByUserGroupsId");
+		candidateEntity = new CandidateEntity(1, "firstName","lastName",false,true,1,true,createdAt,1,updatedAt,1,1,candidateSubmissionData,"createdByUserGroupsId","candidateCompleteInfo");
 	}
 
 	@AfterEach
