@@ -379,8 +379,8 @@ public class CandidateController {
 	}
 
 	@PostMapping("/listing/delete")
-	public ResponseEntity<Object> deleteAccountListing(@RequestBody CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
-		LOG.info("Account listing delete: Controller");
+	public ResponseEntity<Object> deleteCandidateListing(@RequestBody CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
+		LOG.info("Candidate listing delete: Controller");
 		candidateNewService.softDeleteCandidates(candidateListingDeleteRequestDTO);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
