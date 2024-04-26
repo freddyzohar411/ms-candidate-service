@@ -378,4 +378,13 @@ public class CandidateController {
 				.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
 	}
 
+	@PostMapping("/listing/delete")
+	public ResponseEntity<Object> deleteCandidateListing(@RequestBody CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
+		LOG.info("Candidate listing delete: Controller");
+		candidateNewService.softDeleteCandidates(candidateListingDeleteRequestDTO);
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+
 }

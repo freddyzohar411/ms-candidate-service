@@ -1252,7 +1252,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public List<CandidateEntity> findAllByEmbeddingIsNull() {
-		String queryString = "SELECT * FROM candidate WHERE candidate_embeddings IS NULL";
+		String queryString = "SELECT * FROM candidate WHERE candidate_embeddings IS NULL AND is_deleted = false AND is_draft = false AND is_active = true";
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		return query.getResultList();
 	}

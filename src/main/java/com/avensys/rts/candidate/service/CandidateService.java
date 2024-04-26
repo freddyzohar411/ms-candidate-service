@@ -66,4 +66,6 @@ public interface CandidateService {
 			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException;
 
 	void updateCandidateEmbeddingsAll();
+
+	void softDeleteCandidates(CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO);
 }

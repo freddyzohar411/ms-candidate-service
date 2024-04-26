@@ -1039,6 +1039,25 @@ public class CandidateServiceImpl implements CandidateService {
 
 	}
 
+	@Override
+	public void softDeleteCandidates(CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
+		if (candidateListingDeleteRequestDTO.getCandidateIds().isEmpty()) {
+			throw new RuntimeException("No candidates selected");
+		}
+		List<CandidateEntity> candidateEntities = candidateRepository
+				.findAllByIdsAndDraftAndDeleted(candidateListingDeleteRequestDTO.getCandidateIds(), false, false, true);
+
+		if (candidateEntities.isEmpty()) {
+			throw new RuntimeException("No candidates found");
+		}
+
+		for (CandidateEntity candidateEntity : candidateEntities) {
+			candidateEntity.setDeleted(true);
+		}
+
+		candidateRepository.saveAll(candidateEntities);
+	}
+
 	private CandidateSimilarityListingResponseDTO candidateSimilarityPageToCandidateSimilarityListingResponse(
 			Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage, Boolean toSort) {
 		CandidateSimilarityListingResponseDTO candidateSimilarityListingResponseDTO = new CandidateSimilarityListingResponseDTO();
