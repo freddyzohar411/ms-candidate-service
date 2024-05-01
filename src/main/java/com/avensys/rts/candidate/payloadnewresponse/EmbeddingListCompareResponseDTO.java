@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EmbeddingListCompareResponseDTO {
+	private Double normalized_score;
 	private Double similarity_score;
 	private List<SimilaritySetDTO> similar_attributes;
 }
