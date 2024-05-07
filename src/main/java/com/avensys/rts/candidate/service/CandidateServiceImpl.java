@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
@@ -615,6 +616,20 @@ public class CandidateServiceImpl implements CandidateService {
 						JSONUtil.convertObjectToJsonNode(fieldOfStudyResponse.getSimilar_attributes()));
 
 				// Set Normalized Score
+				candidateMatchingDetailsResponseDTO.setNormalizedQualificationScore(qualificationResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO.setNormalizedLanguageScore(languageResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO.setNormalizedSkillsScore(jobSkillsResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO.setNormalizedJobTitleScore(jobTitlesResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO.setNormalizedGeneralScore(generalResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO.setNormalizedFieldOfStudyScore(fieldOfStudyResponse.getNormalized_score());
+
+				// Set Similarity Score
+				candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationResponse.getSimilarity_score());
+				candidateMatchingDetailsResponseDTO.setLanguageScore(languageResponse.getSimilarity_score());
+				candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillsResponse.getSimilarity_score());
+				candidateMatchingDetailsResponseDTO.setJobTitleScore(jobTitlesResponse.getSimilarity_score());
+				candidateMatchingDetailsResponseDTO.setGeneralScore(generalResponse.getSimilarity_score());
+				candidateMatchingDetailsResponseDTO.setFieldOfStudyScore(fieldOfStudyResponse.getSimilarity_score());
 
 				candidateMatchingDetailsResponseDTO.setCandidateId(candidateId.longValue());
 				candidateMatchingDetailsResponseDTO.setJobId(jobId);
@@ -792,6 +807,7 @@ public class CandidateServiceImpl implements CandidateService {
 		// concurrency
 		// Use this getMatchCandidateToJobData function, set sort to true
 //		 getSimilarityData(candidateEntityWithSimilarityPage, jobId);
+//		getSimilarityData2(candidateEntityWithSimilarityPage, jobId);
 
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
@@ -872,24 +888,48 @@ public class CandidateServiceImpl implements CandidateService {
 
 								// Directly access future results without join(), since we are already in a
 								// completion stage.
-								double jobSkillScore = jobSkillsFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
+//								double jobSkillScore = jobSkillsFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double jobTitleScore = jobTitlesFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double qualificationScore = qualificationFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double generalScore = generalFuture.join().getSimilar_attributes() != null
+//										? generalFuture.join().getSimilar_attributes().stream()
+//												.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//														: attribute.getScore().doubleValue())
+//												.sum()
+//										: 0.0;
+
+								double jobSkillScore = Optional.ofNullable(jobSkillsFuture.join().getSimilar_attributes())
+										.map(List::stream)
+										.orElseGet(Stream::empty)
+										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
-								double jobTitleScore = jobTitlesFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
+
+								double jobTitleScore = Optional.ofNullable(jobTitlesFuture.join().getSimilar_attributes())
+										.map(List::stream)
+										.orElseGet(Stream::empty)
+										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
-								double qualificationScore = qualificationFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
+
+								double qualificationScore = Optional.ofNullable(qualificationFuture.join().getSimilar_attributes())
+										.map(List::stream)
+										.orElseGet(Stream::empty)
+										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
-								double generalScore = generalFuture.join().getSimilar_attributes() != null
-										? generalFuture.join().getSimilar_attributes().stream()
-												.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-														: attribute.getScore().doubleValue())
-												.sum()
-										: 0.0;
+
+								double generalScore = Optional.ofNullable(generalFuture.join().getSimilar_attributes())
+										.map(List::stream)
+										.orElseGet(Stream::empty)
+										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
+										.sum();
 
 								// Set scores...
 								candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillScore);
@@ -1042,30 +1082,36 @@ public class CandidateServiceImpl implements CandidateService {
 
 								// Directly access future results without join(), since we are already in a
 								// completion stage.
-								double jobSkillScore = jobSkillsFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
-										.sum();
-								double jobTitleScore = jobTitlesFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
-										.sum();
-								double qualificationScore = qualificationFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
-										.sum();
-								double generalScore = generalFuture.join().getSimilar_attributes() != null
-										? generalFuture.join().getSimilar_attributes().stream()
-										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
-												: attribute.getScore().doubleValue())
-										.sum()
-										: 0.0;
+//								double jobSkillScore = jobSkillsFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double jobTitleScore = jobTitlesFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double qualificationScore = qualificationFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum();
+//								double generalScore = generalFuture.join().getSimilar_attributes() != null
+//										? generalFuture.join().getSimilar_attributes().stream()
+//										.mapToDouble(attribute -> attribute.getScore() == null ? 0.0
+//												: attribute.getScore().doubleValue())
+//										.sum()
+//										: 0.0;
+//
+//								// Set scores...
+//								candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillScore);
+//								candidateMatchingDetailsResponseDTO.setJobTitleScore(jobTitleScore);
+//								candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationScore);
+//								candidateMatchingDetailsResponseDTO.setGeneralScore(generalScore);
 
-								// Set scores...
-								candidateMatchingDetailsResponseDTO.setSkillsScore(jobSkillScore);
-								candidateMatchingDetailsResponseDTO.setJobTitleScore(jobTitleScore);
-								candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationScore);
-								candidateMatchingDetailsResponseDTO.setGeneralScore(generalScore);
+								// Set Normalized Score
+								candidateMatchingDetailsResponseDTO.setNormalizedQualificationScore(qualificationFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO.setNormalizedSkillsScore(jobSkillsFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO.setNormalizedJobTitleScore(jobTitlesFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO.setNormalizedGeneralScore(generalFuture.join().getNormalized_score());
 
 								return candidateMatchingDetailsResponseDTO;
 							});
@@ -1079,50 +1125,37 @@ public class CandidateServiceImpl implements CandidateService {
 
 		// Normalize score between max and min for each section
 		// Get the max and min for each section
-		Double maxQualificationScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getQualificationScore).max().orElse(0.0);
-		Double minQualificationScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getQualificationScore).min().orElse(0.0);
-		Double maxSkillsScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getSkillsScore).max().orElse(0.0);
-		Double minSkillsScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getSkillsScore).min().orElse(0.0);
-		Double maxJobTitleScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getJobTitleScore).max().orElse(0.0);
-		Double minJobTitleScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getJobTitleScore).min().orElse(0.0);
-		Double maxGeneralScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getGeneralScore).max().orElse(0.0);
-		Double minGeneralScore = candidateMatchingDetailsResponseDTOList.stream()
-				.mapToDouble(CandidateMatchingDetailsResponseDTO::getGeneralScore).min().orElse(0.0);
+//		Double maxQualificationScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getQualificationScore).max().orElse(0.0);
+//		Double minQualificationScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getQualificationScore).min().orElse(0.0);
+//		Double maxSkillsScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getSkillsScore).max().orElse(0.0);
+//		Double minSkillsScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getSkillsScore).min().orElse(0.0);
+//		Double maxJobTitleScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getJobTitleScore).max().orElse(0.0);
+//		Double minJobTitleScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getJobTitleScore).min().orElse(0.0);
+//		Double maxGeneralScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getGeneralScore).max().orElse(0.0);
+//		Double minGeneralScore = candidateMatchingDetailsResponseDTOList.stream()
+//				.mapToDouble(CandidateMatchingDetailsResponseDTO::getGeneralScore).min().orElse(0.0);
 
 		// Normalize the score
 		for (CandidateMatchingDetailsResponseDTO ca : candidateMatchingDetailsResponseDTOList) {
-			if (maxQualificationScore.equals(minQualificationScore)) {
-				ca.setQualificationScore(0.0);
-			} else {
-				ca.setQualificationScore((ca.getQualificationScore() - minQualificationScore)
-						/ (maxQualificationScore - minQualificationScore));
-			}
-			if (maxSkillsScore.equals(minSkillsScore)) {
-				ca.setSkillsScore(0.0);
-			} else {
-				ca.setSkillsScore((ca.getSkillsScore() - minSkillsScore) / (maxSkillsScore - minSkillsScore));
-			}
-			if (maxJobTitleScore.equals(minJobTitleScore)) {
-				ca.setJobTitleScore(0.0);
-			} else {
-				ca.setJobTitleScore((ca.getJobTitleScore() - minJobTitleScore) / (maxJobTitleScore - minJobTitleScore));
-			}
 
-			if (maxGeneralScore.equals(minGeneralScore)) {
-				ca.setGeneralScore(0.0);
-			} else {
-				ca.setGeneralScore((ca.getGeneralScore() - minGeneralScore) / (maxGeneralScore - minGeneralScore));
-			}
+//			Double preComputedScore = ca.getNormalizedGeneralScore() * 0.35 + ca.getNormalizedQualificationScore() * 0.05
+//					+ ca.getNormalizedSkillsScore() * 0.35 + ca.getNormalizedJobTitleScore() * 0.25;
 
-			Double preComputedScore = ca.getGeneralScore() * 0.2 + ca.getQualificationScore() * 0.2
-					+ ca.getSkillsScore() * 0.3 + ca.getJobTitleScore() * 0.3;
+			double jobTitleScore = ca.getNormalizedJobTitleScore() != null ? ca.getNormalizedJobTitleScore() : 0.0;
+			double generalScore = ca.getNormalizedGeneralScore() != null ? ca.getNormalizedGeneralScore() : 0.0;
+			double qualificationScore = ca.getNormalizedQualificationScore() != null ? ca.getNormalizedQualificationScore() : 0.0;
+			double skillsScore = ca.getNormalizedSkillsScore() != null ? ca.getNormalizedSkillsScore() : 0.0;
+
+			Double preComputedScore = generalScore * 0.35 + qualificationScore * 0.05
+					+ skillsScore * 0.35 + jobTitleScore * 0.25;
+
 			ca.setComputedScore(preComputedScore);
 
 		}
@@ -1130,8 +1163,8 @@ public class CandidateServiceImpl implements CandidateService {
 		// Update the page content with all these data
 		for (int i = 0; i < candidateEntityWithSimilarityList.size(); i++) {
 			CandidateEntityWithSimilarity ca = candidateEntityWithSimilarityList.get(i);
-			ca.setComputedScore(candidateMatchingDetailsResponseDTOList.get(i).getComputedScore() * 0.4
-					+ ca.getSimilarityScore() * 0.6);
+			ca.setComputedScore(candidateMatchingDetailsResponseDTOList.get(i).getComputedScore() * 0.5
+					+ ca.getSimilarityScore() * 0.5);
 		}
 		return null;
 	}
