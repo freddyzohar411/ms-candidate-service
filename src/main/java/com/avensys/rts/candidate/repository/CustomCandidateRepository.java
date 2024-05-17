@@ -65,14 +65,16 @@ public interface CustomCandidateRepository {
 			List<Float> jobDescriptionVector);
 
 	Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector);
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector,
+			Boolean isFilterOutTaggedCandidates);
 
 	Page<CandidateEntityWithSimilarity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector);
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector,
+			Boolean isFilterOutTaggedCandidates);
 
 	Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
-			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector);
+			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates);
 
 	List<CandidateEntity> findAllByEmbeddingIsNull();
 }

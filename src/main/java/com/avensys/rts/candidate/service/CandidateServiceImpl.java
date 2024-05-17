@@ -747,6 +747,7 @@ public class CandidateServiceImpl implements CandidateService {
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
 
+	// WORK ON THIS
 	@Override
 	public CandidateSimilarityListingResponseDTO getCandidateListingPageWithSimilaritySearch(
 			CandidateListingRequestDTO candidateListingRequestDTO) throws ExecutionException, InterruptedException {
@@ -796,11 +797,11 @@ public class CandidateServiceImpl implements CandidateService {
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData);
+							false, true, pageRequest, jobEmbeddingData, true);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData);
+							false, true, pageRequest, jobEmbeddingData, true);
 		}
 
 		// Special evaluation for each candidate compute the other score in using
@@ -1207,12 +1208,12 @@ public class CandidateServiceImpl implements CandidateService {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding());
+							searchTerm, jobEmbedding.getEmbedding(), true);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding());
+							searchTerm, jobEmbedding.getEmbedding(), true);
 		}
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}

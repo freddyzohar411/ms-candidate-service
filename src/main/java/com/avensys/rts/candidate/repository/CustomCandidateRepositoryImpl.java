@@ -993,7 +993,16 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
+//		Boolean filterOutTaggedCandidates = true;
+
+		String filterSubQuery = "";
+		if (isFilterOutTaggedCandidates) {
+			// Write a sub query to get all candidate ids that are tagged from
+			// job_candidate_stage table
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+		}
+
 		// Conversion to PostgreSQL's array format for vector comparison
 		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
@@ -1019,8 +1028,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		String queryString = String.format(
 				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
 						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
-				userCondition, orderByClause, sortDirection);
+						+ "AND c.candidate_embeddings IS NOT NULL " + "%s " // Filter candidate sub query with a spacing
+						+ "ORDER BY %s %s",
+				userCondition, filterSubQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString);
@@ -1055,8 +1065,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "AND candidate_embeddings IS NOT NULL",
-				userCondition));
+						+ "AND candidate_embeddings IS NOT NULL "
+						+ "%s " // Filter candidate sub query with a spacing// for the next line
+				, userCondition, filterSubQuery));
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
@@ -1071,7 +1082,16 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector) {
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
+//		Boolean filterOutTaggedCandidates = true;
+
+		String filterSubQuery = "";
+		if (isFilterOutTaggedCandidates) {
+			// Write a sub query to get all candidate ids that are tagged from
+			// job_candidate_stage table
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+		}
+
 		// Conversion to PostgreSQL's array format for vector comparison
 		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
@@ -1098,8 +1118,10 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		String queryString = String.format(
 				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
 						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
-				userCondition, orderByClause, sortDirection);
+						+ "AND c.candidate_embeddings IS NOT NULL " + "%s " // Filter candidate sub query with a spacing
+																			// for the next line
+						+ "ORDER BY %s %s",
+				userCondition, filterSubQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString);
@@ -1134,8 +1156,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "AND candidate_embeddings IS NOT NULL",
-				userCondition));
+						+ "AND candidate_embeddings IS NOT NULL " + "%s ", // Filter candidate sub query with a spacing
+																			// for the next line
+				userCondition, filterSubQuery));
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
 		countQuery.setParameter("isActive", isActive);
@@ -1151,7 +1174,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
-			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector) {
+			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
+
+		String filterSubQuery = "";
+		if (isFilterOutTaggedCandidates) {
+			// Write a sub query to get all candidate ids that are tagged from
+			// job_candidate_stage table
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+		}
+
 		// Conversion to PostgreSQL's array format for vector comparison
 		String vectorString = jobDescriptionVector.stream().map(Object::toString)
 				.collect(Collectors.joining(",", "[", "]")); // Ensure this is the correct format
@@ -1197,8 +1228,10 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		String queryString = String.format(
 				"SELECT c.id, (1 - (CAST(:vectorText AS vector) <=> c.candidate_embeddings)) AS cosine_similarity FROM candidate c "
 						+ "WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
-						+ "AND c.candidate_embeddings IS NOT NULL " + "ORDER BY %s %s",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+						+ "AND c.candidate_embeddings IS NOT NULL "
+						+ "%s " // Filter candidate sub query with a spacing for the next line
+						+ "ORDER BY %s %s",
+				userCondition, searchConditions.toString(), filterSubQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString);
@@ -1234,8 +1267,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Count query for pagination
 		Query countQuery = entityManager.createNativeQuery(String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
-						+ "AND candidate_embeddings IS NOT NULL",
-				userCondition, searchConditions.toString()));
+						+ "AND candidate_embeddings IS NOT NULL " + "%s ", // Filter candidate sub query with a spacing
+																			// for the next line
+				userCondition, searchConditions.toString(), filterSubQuery));
 
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isDraft", isDraft);
