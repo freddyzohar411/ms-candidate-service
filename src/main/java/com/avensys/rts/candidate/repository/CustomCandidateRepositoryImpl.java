@@ -993,14 +993,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
-//		Boolean filterOutTaggedCandidates = true;
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates, Long jobId) {
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND is_tagged = false";
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false".formatted(jobId);
 		}
 
 		// Conversion to PostgreSQL's array format for vector comparison
@@ -1082,14 +1083,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByNumericWithUserIdsAndSimilaritySearch(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
-//		Boolean filterOutTaggedCandidates = true;
+			Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates, Long jobId) {
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND is_tagged = false";
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false".formatted(jobId);
 		}
 
 		// Conversion to PostgreSQL's array format for vector comparison
@@ -1174,13 +1176,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	@Override
 	public Page<CandidateEntityWithSimilarity> findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 			List<Long> userIds, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable,
-			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates) {
+			List<String> searchFields, String searchTerm, List<Float> jobDescriptionVector, Boolean isFilterOutTaggedCandidates, Long jobId) {
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
+//			filterSubQuery = "AND is_tagged = false";
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false".formatted(jobId);
 		}
 
 		// Conversion to PostgreSQL's array format for vector comparison

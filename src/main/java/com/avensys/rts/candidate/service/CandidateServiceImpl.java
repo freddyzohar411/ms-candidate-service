@@ -797,11 +797,11 @@ public class CandidateServiceImpl implements CandidateService {
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, true);
+							false, true, pageRequest, jobEmbeddingData, true, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, true);
+							false, true, pageRequest, jobEmbeddingData, true, jobId);
 		}
 
 		// Special evaluation for each candidate compute the other score in using
@@ -1208,12 +1208,12 @@ public class CandidateServiceImpl implements CandidateService {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), true);
+							searchTerm, jobEmbedding.getEmbedding(), true, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), true);
+							searchTerm, jobEmbedding.getEmbedding(), true, jobId);
 		}
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
