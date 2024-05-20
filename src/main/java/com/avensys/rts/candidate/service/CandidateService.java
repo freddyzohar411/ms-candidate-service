@@ -35,10 +35,10 @@ public interface CandidateService {
 	void softDeleteCandidate(Integer id);
 
 	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Boolean getAll);
+			Boolean getAll, Long jobId);
 
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll);
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId);
 
 	// List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 

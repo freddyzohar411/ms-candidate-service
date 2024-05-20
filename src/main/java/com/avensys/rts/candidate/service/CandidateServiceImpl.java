@@ -692,7 +692,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean getAll) {
+			String sortDirection, Boolean getAll, Long jobId) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -709,6 +709,8 @@ public class CandidateServiceImpl implements CandidateService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
+
+
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
 					pageRequest);
@@ -721,7 +723,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -794,14 +796,19 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 
+		Boolean isFilterOutTaggedCandidates = false;
+		if (jobId != null) {
+			isFilterOutTaggedCandidates = true;
+		}
+
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, true, jobId);
+							false, true, pageRequest, jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, true, jobId);
+							false, true, pageRequest, jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
 		}
 
 		// Special evaluation for each candidate compute the other score in using
@@ -1204,16 +1211,21 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 
+		Boolean isFilterOutTaggedCandidates = false;
+		if (jobId != null) {
+			isFilterOutTaggedCandidates = true;
+		}
+
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), true, jobId);
+							searchTerm, jobEmbedding.getEmbedding(), isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
 					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
 							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), true, jobId);
+							searchTerm, jobEmbedding.getEmbedding(), isFilterOutTaggedCandidates, jobId);
 		}
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
