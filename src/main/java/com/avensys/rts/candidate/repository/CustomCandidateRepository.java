@@ -43,16 +43,18 @@ public interface CustomCandidateRepository {
 
 	// Check only user id
 	Page<CandidateEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable);
+			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId);
 
 	Page<CandidateEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable);
+			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId);
 
 	Page<CandidateEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
+			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
+			Boolean isFilterOutTaggedCandidates, Long jobId);
 
 	Page<CandidateEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
+			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
+			Boolean isFilterOutTaggedCandidates, Long jobId);
 
 	void insertVector(Long candidateId, String columnName, List<Float> vector);
 

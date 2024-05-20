@@ -616,12 +616,14 @@ public class CandidateServiceImpl implements CandidateService {
 						JSONUtil.convertObjectToJsonNode(fieldOfStudyResponse.getSimilar_attributes()));
 
 				// Set Normalized Score
-				candidateMatchingDetailsResponseDTO.setNormalizedQualificationScore(qualificationResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO
+						.setNormalizedQualificationScore(qualificationResponse.getNormalized_score());
 				candidateMatchingDetailsResponseDTO.setNormalizedLanguageScore(languageResponse.getNormalized_score());
 				candidateMatchingDetailsResponseDTO.setNormalizedSkillsScore(jobSkillsResponse.getNormalized_score());
 				candidateMatchingDetailsResponseDTO.setNormalizedJobTitleScore(jobTitlesResponse.getNormalized_score());
 				candidateMatchingDetailsResponseDTO.setNormalizedGeneralScore(generalResponse.getNormalized_score());
-				candidateMatchingDetailsResponseDTO.setNormalizedFieldOfStudyScore(fieldOfStudyResponse.getNormalized_score());
+				candidateMatchingDetailsResponseDTO
+						.setNormalizedFieldOfStudyScore(fieldOfStudyResponse.getNormalized_score());
 
 				// Set Similarity Score
 				candidateMatchingDetailsResponseDTO.setQualificationScore(qualificationResponse.getSimilarity_score());
@@ -710,13 +712,17 @@ public class CandidateServiceImpl implements CandidateService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 
+		Boolean isFilterOutTaggedCandidates = false;
+		if (jobId != null) {
+			isFilterOutTaggedCandidates = true;
+		}
 
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					pageRequest);
+					pageRequest, isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					pageRequest);
+					pageRequest, isFilterOutTaggedCandidates, jobId);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -739,12 +745,18 @@ public class CandidateServiceImpl implements CandidateService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
+
+		Boolean isFilterOutTaggedCandidates = false;
+		if (jobId != null) {
+			isFilterOutTaggedCandidates = true;
+		}
+
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -803,12 +815,12 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
+					.findAllByOrderByNumericWithUserIdsAndSimilaritySearch(userIds, false, false, true, pageRequest,
+							jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false,
-							false, true, pageRequest, jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
+					.findAllByOrderByStringWithUserIdsAndSimilaritySearch(userIds, false, false, true, pageRequest,
+							jobEmbeddingData, isFilterOutTaggedCandidates, jobId);
 		}
 
 		// Special evaluation for each candidate compute the other score in using
@@ -915,27 +927,26 @@ public class CandidateServiceImpl implements CandidateService {
 //												.sum()
 //										: 0.0;
 
-								double jobSkillScore = Optional.ofNullable(jobSkillsFuture.join().getSimilar_attributes())
-										.map(List::stream)
+								double jobSkillScore = Optional
+										.ofNullable(jobSkillsFuture.join().getSimilar_attributes()).map(List::stream)
 										.orElseGet(Stream::empty)
 										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
 
-								double jobTitleScore = Optional.ofNullable(jobTitlesFuture.join().getSimilar_attributes())
-										.map(List::stream)
+								double jobTitleScore = Optional
+										.ofNullable(jobTitlesFuture.join().getSimilar_attributes()).map(List::stream)
 										.orElseGet(Stream::empty)
 										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
 
-								double qualificationScore = Optional.ofNullable(qualificationFuture.join().getSimilar_attributes())
-										.map(List::stream)
-										.orElseGet(Stream::empty)
+								double qualificationScore = Optional
+										.ofNullable(qualificationFuture.join().getSimilar_attributes())
+										.map(List::stream).orElseGet(Stream::empty)
 										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
 
 								double generalScore = Optional.ofNullable(generalFuture.join().getSimilar_attributes())
-										.map(List::stream)
-										.orElseGet(Stream::empty)
+										.map(List::stream).orElseGet(Stream::empty)
 										.mapToDouble(attribute -> Optional.ofNullable(attribute.getScore()).orElse(0.0))
 										.sum();
 
@@ -1045,8 +1056,8 @@ public class CandidateServiceImpl implements CandidateService {
 					JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(candidateData);
 					Set<String> candidateQualifications = CandidateDataExtractionUtil
 							.extractCandidateEducationQualificationsSet(candidateDataJsonNode);
-					//					Set<String> candidateLanguages = CandidateDataExtractionUtil
-					//							.extractCandidateLanguagesSet(candidateDataJsonNode);
+					// Set<String> candidateLanguages = CandidateDataExtractionUtil
+					// .extractCandidateLanguagesSet(candidateDataJsonNode);
 					Set<String> candidateSkills = CandidateDataExtractionUtil
 							.extractCandidateSkillsSet(candidateDataJsonNode);
 					Set<String> candidateJobTitles = CandidateDataExtractionUtil
@@ -1057,9 +1068,10 @@ public class CandidateServiceImpl implements CandidateService {
 					qualificationRequestDTO.setJobAttributes(jobQualifications);
 					qualificationRequestDTO.setCandidateAttributes(candidateQualifications);
 
-					//					EmbeddingListCompareRequestDTO languageRequestDTO = new EmbeddingListCompareRequestDTO();
-					//					languageRequestDTO.setJobAttributes(jobLanguages);
-					//					languageRequestDTO.setCandidateAttributes(candidateLanguages);
+					// EmbeddingListCompareRequestDTO languageRequestDTO = new
+					// EmbeddingListCompareRequestDTO();
+					// languageRequestDTO.setJobAttributes(jobLanguages);
+					// languageRequestDTO.setCandidateAttributes(candidateLanguages);
 
 					EmbeddingListCompareRequestDTO jobTitlesRequestDTO = new EmbeddingListCompareRequestDTO();
 					jobTitlesRequestDTO.setJobAttributes(jobTitles);
@@ -1075,8 +1087,9 @@ public class CandidateServiceImpl implements CandidateService {
 
 					CompletableFuture<EmbeddingListCompareResponseDTO> qualificationFuture = compareEmbeddingsListAsyncMan(
 							qualificationRequestDTO, parentContext);
-					//					CompletableFuture<EmbeddingListCompareResponseDTO> languageFuture = compareEmbeddingsListAsyncMan(
-					//							languageRequestDTO, parentContext);
+					// CompletableFuture<EmbeddingListCompareResponseDTO> languageFuture =
+					// compareEmbeddingsListAsyncMan(
+					// languageRequestDTO, parentContext);
 					CompletableFuture<EmbeddingListCompareResponseDTO> jobTitlesFuture = compareEmbeddingsListAsyncMan(
 							jobTitlesRequestDTO, parentContext);
 					CompletableFuture<EmbeddingListCompareResponseDTO> jobSkillsFuture = compareEmbeddingsListTextAsyncMan(
@@ -1116,10 +1129,14 @@ public class CandidateServiceImpl implements CandidateService {
 //								candidateMatchingDetailsResponseDTO.setGeneralScore(generalScore);
 
 								// Set Normalized Score
-								candidateMatchingDetailsResponseDTO.setNormalizedQualificationScore(qualificationFuture.join().getNormalized_score());
-								candidateMatchingDetailsResponseDTO.setNormalizedSkillsScore(jobSkillsFuture.join().getNormalized_score());
-								candidateMatchingDetailsResponseDTO.setNormalizedJobTitleScore(jobTitlesFuture.join().getNormalized_score());
-								candidateMatchingDetailsResponseDTO.setNormalizedGeneralScore(generalFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO.setNormalizedQualificationScore(
+										qualificationFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO
+										.setNormalizedSkillsScore(jobSkillsFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO
+										.setNormalizedJobTitleScore(jobTitlesFuture.join().getNormalized_score());
+								candidateMatchingDetailsResponseDTO
+										.setNormalizedGeneralScore(generalFuture.join().getNormalized_score());
 
 								return candidateMatchingDetailsResponseDTO;
 							});
@@ -1158,11 +1175,13 @@ public class CandidateServiceImpl implements CandidateService {
 
 			double jobTitleScore = ca.getNormalizedJobTitleScore() != null ? ca.getNormalizedJobTitleScore() : 0.0;
 			double generalScore = ca.getNormalizedGeneralScore() != null ? ca.getNormalizedGeneralScore() : 0.0;
-			double qualificationScore = ca.getNormalizedQualificationScore() != null ? ca.getNormalizedQualificationScore() : 0.0;
+			double qualificationScore = ca.getNormalizedQualificationScore() != null
+					? ca.getNormalizedQualificationScore()
+					: 0.0;
 			double skillsScore = ca.getNormalizedSkillsScore() != null ? ca.getNormalizedSkillsScore() : 0.0;
 
-			Double preComputedScore = generalScore * 0.35 + qualificationScore * 0.05
-					+ skillsScore * 0.35 + jobTitleScore * 0.25;
+			Double preComputedScore = generalScore * 0.35 + qualificationScore * 0.05 + skillsScore * 0.35
+					+ jobTitleScore * 0.25;
 
 			ca.setComputedScore(preComputedScore);
 
@@ -1218,14 +1237,14 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
-							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), isFilterOutTaggedCandidates, jobId);
+					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(userIds, false, false, true,
+							pageRequest, searchFields, searchTerm, jobEmbedding.getEmbedding(),
+							isFilterOutTaggedCandidates, jobId);
 		} catch (Exception e) {
 			candidateEntityWithSimilarityPage = candidateRepository
-					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(
-							userIds, false, false, true, pageRequest, searchFields,
-							searchTerm, jobEmbedding.getEmbedding(), isFilterOutTaggedCandidates, jobId);
+					.findAllByOrderByStringWithUserIdsAndSimilaritySearchWithSearchTerm(userIds, false, false, true,
+							pageRequest, searchFields, searchTerm, jobEmbedding.getEmbedding(),
+							isFilterOutTaggedCandidates, jobId);
 		}
 		return candidateSimilarityPageToCandidateSimilarityListingResponse(candidateEntityWithSimilarityPage, false);
 	}
