@@ -77,5 +77,7 @@ public class CandidateEntity {
 	@Column(name = "candidate_complete_info", columnDefinition="TEXT")
 	private String candidateCompleteInfo;
 
+	@Column(name = "is_tagged", columnDefinition = "boolean default false")
+	private boolean isTagged = false;
 
 }

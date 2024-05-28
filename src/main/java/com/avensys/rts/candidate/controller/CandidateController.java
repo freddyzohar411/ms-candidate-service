@@ -228,16 +228,17 @@ public class CandidateController {
 		String sortDirection = candidateListingRequestDTO.getSortDirection();
 		String searchTerm = candidateListingRequestDTO.getSearchTerm();
 		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
+		Long jobId = candidateListingRequestDTO.getJobId();
 		Boolean isAdmin = userUtil.checkIsAdmin();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin),
+					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin, jobId),
 					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
 							LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, isAdmin),
+						searchFields, isAdmin, jobId),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
