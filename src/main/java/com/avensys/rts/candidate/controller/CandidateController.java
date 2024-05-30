@@ -229,7 +229,8 @@ public class CandidateController {
 		String searchTerm = candidateListingRequestDTO.getSearchTerm();
 		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
 		Long jobId = candidateListingRequestDTO.getJobId();
-		Boolean isAdmin = userUtil.checkIsAdmin();
+		Boolean isAdmin = candidateListingRequestDTO.getAllActive() ? candidateListingRequestDTO.getAllActive()
+				: userUtil.checkIsAdmin();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin, jobId),
@@ -380,12 +381,12 @@ public class CandidateController {
 	}
 
 	@PostMapping("/listing/delete")
-	public ResponseEntity<Object> deleteCandidateListing(@RequestBody CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
+	public ResponseEntity<Object> deleteCandidateListing(
+			@RequestBody CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO) {
 		LOG.info("Candidate listing delete: Controller");
 		candidateNewService.softDeleteCandidates(candidateListingDeleteRequestDTO);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-
 
 }
