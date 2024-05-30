@@ -1205,7 +1205,7 @@ public class CandidateServiceImpl implements CandidateService {
 		String sortDirection = candidateListingRequestDTO.getSortDirection();
 		String searchTerm = candidateListingRequestDTO.getSearchTerm();
 		List<String> searchFields = candidateListingRequestDTO.getSearchFields();
-		searchFields.add("candidate_complete_info");
+//		searchFields.add("candidate_complete_info");
 		Long jobId = candidateListingRequestDTO.getJobId();
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
