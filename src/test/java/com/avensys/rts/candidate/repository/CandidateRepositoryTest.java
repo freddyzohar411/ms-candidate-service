@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CandidateRepositoryTest {
-	
+
 	@Autowired
 	CandidateRepository candidateRepository;
 
@@ -35,7 +35,8 @@ public class CandidateRepositoryTest {
 
 	@BeforeEach
 	void setUp() {
-		candidateEntity = new CandidateEntity(1, "firstName","lastName",false,true,1,true,createdAt,1,updatedAt,1,1,candidateSubmissionData,"createdByUserGroupsId","candidateCompleteInfo");
+		candidateEntity = new CandidateEntity(1, "firstName", "lastName", false, true, 1, true, createdAt, 1, updatedAt,
+				1, 1, candidateSubmissionData, "createdByUserGroupsId", "candidateCompleteInfo", false);
 	}
 
 	@AfterEach
@@ -46,39 +47,41 @@ public class CandidateRepositoryTest {
 
 	@Test
 	void testFindByEntityTypeAndEntityId() {
-		Optional<CandidateEntity> candidateOptional = candidateRepository
-				.findByIdAndDeleted(1,false,true);
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findByIdAndDeleted(1, false, true);
 		assertNotNull(candidateOptional);
 	}
-	
+
 	@Test
 	void testFindByUserAndDraftAndDeleted() {
-		Optional<CandidateEntity> candidateOptional =  candidateRepository.findByUserAndDraftAndDeleted(1,false,false,true);
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findByUserAndDraftAndDeleted(1, false, false,
+				true);
 		assertNotNull(candidateOptional);
 
 	}
-	
+
 	@Test
 	void testFindAllByUserAndDraftAndDeleted() {
-		List<CandidateEntity> candidateList = candidateRepository.findAllByUserAndDraftAndDeleted(1,false,false,true);
+		List<CandidateEntity> candidateList = candidateRepository.findAllByUserAndDraftAndDeleted(1, false, false,
+				true);
 		assertNotNull(candidateList);
 	}
-	
+
 	@Test
 	void testFindAllByUserAndDeleted() {
-		List<CandidateEntity> candidateList = candidateRepository.findAllByUserAndDeleted(1,false,true);
+		List<CandidateEntity> candidateList = candidateRepository.findAllByUserAndDeleted(1, false, true);
 		assertNotNull(candidateList);
 	}
-	
+
 	@Test
 	void testFindAllByUserIdsAndDeleted() {
-		List<CandidateEntity> candidateList = candidateRepository.findAllByUserIdsAndDeleted(createdByList,false ,true);
+		List<CandidateEntity> candidateList = candidateRepository.findAllByUserIdsAndDeleted(createdByList, false,
+				true);
 		assertNotNull(candidateList);
 	}
-	
+
 	@Test
 	void testFindByIdAndDraft() {
-		Optional<CandidateEntity> candidateOptional = candidateRepository.findByIdAndDraft(1,false,true);
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findByIdAndDraft(1, false, true);
 		assertNotNull(candidateOptional);
 	}
 
