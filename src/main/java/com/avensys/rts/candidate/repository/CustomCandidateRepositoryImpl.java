@@ -598,7 +598,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -671,7 +671,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -745,7 +745,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -842,7 +842,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -1038,9 +1038,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
-//			filterSubQuery = "AND is_tagged = false";
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -1130,9 +1128,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
-//			filterSubQuery = "AND is_tagged = false";
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
@@ -1225,9 +1221,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		if (isFilterOutTaggedCandidates) {
 			// Write a sub query to get all candidate ids that are tagged from
 			// job_candidate_stage table
-//			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1)";
-//			filterSubQuery = "AND is_tagged = false";
-			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_stage_id = 1 AND job_id = %s) AND is_tagged = false"
+			filterSubQuery = "AND id NOT IN (SELECT DISTINCT(candidate_id) FROM job_candidate_stage WHERE job_id = %s) "
 					.formatted(jobId);
 		}
 
