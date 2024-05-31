@@ -802,7 +802,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = null;
 
-		Boolean isAdmin = userUtil.checkIsAdmin();
+		Boolean isAdmin = candidateListingRequestDTO.getAllActive() ? candidateListingRequestDTO.getAllActive()
+				: userUtil.checkIsAdmin();
 		List<Long> userIds = new ArrayList<>();
 		if (!isAdmin) {
 			userIds = userUtil.getUsersIdUnderManager();
@@ -1223,8 +1224,8 @@ public class CandidateServiceImpl implements CandidateService {
 				EmbeddingResponseDTO.class);
 
 		Page<CandidateEntityWithSimilarity> candidateEntityWithSimilarityPage = null;
-
-		Boolean isAdmin = userUtil.checkIsAdmin();
+		Boolean isAdmin = candidateListingRequestDTO.getAllActive() ? candidateListingRequestDTO.getAllActive()
+				: userUtil.checkIsAdmin();
 		List<Long> userIds = new ArrayList<>();
 		if (!isAdmin) {
 			userIds = userUtil.getUsersIdUnderManager();
