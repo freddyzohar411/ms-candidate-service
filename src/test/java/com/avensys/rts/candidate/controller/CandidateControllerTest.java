@@ -66,7 +66,7 @@ public class CandidateControllerTest {
 	@BeforeEach
 	public void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		candidateListingRequestDTO = new CandidateListingRequestDTO(0,5,"sortBy","sortDirection","searchTerm",searchFields, 1L,"customQuery");
+		candidateListingRequestDTO = new CandidateListingRequestDTO(0,5,"sortBy","sortDirection","searchTerm",searchFields, 1L,"customQuery", null);
 		candidateRequestDTO = new CandidateRequestDTO("kotaiah","nalleboina","male","kotaiah@gmail.com","9381515362","india","india","active","English","owner",3.0,2.6,"avensys","java developer",600000.0,800000.0,"career growth","1Mounth","summarry","java","html","additionalInfo","candidateStatus","source","referrersName",false,formData,1);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(candidateController).build();
 	}
