@@ -66,8 +66,8 @@ public class CandidateControllerTest {
 	@BeforeEach
 	public void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		candidateListingRequestDTO = new CandidateListingRequestDTO(0,5,"sortBy","sortDirection","searchTerm",searchFields, 1L,"customQuery", null);
-		candidateRequestDTO = new CandidateRequestDTO("kotaiah","nalleboina","male","kotaiah@gmail.com","9381515362","india","india","active","English","owner",3.0,2.6,"avensys","java developer",600000.0,800000.0,"career growth","1Mounth","summarry","java","html","additionalInfo","candidateStatus","source","referrersName",false,formData,1);
+		candidateListingRequestDTO = new CandidateListingRequestDTO(0,5,"sortBy","sortDirection","searchTerm",searchFields, 1L,"customQuery", true);
+		candidateRequestDTO = new CandidateRequestDTO("kotaiah","nalleboina","kotaiah@gmail.com",formData,1);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(candidateController).build();
 	}
 
@@ -81,7 +81,7 @@ public class CandidateControllerTest {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		RequestBuilder request = MockMvcRequestBuilders.post("/api/candidates/add")
-				.content(asJsonString( new CandidateRequestDTO("kotaiah","nalleboina","male","kotaiah@gmail.com","9381515362","india","india","active","English","owner",3.0,2.6,"avensys","java developer",600000.0,800000.0,"career growth","1Mounth","summarry","java","html","additionalInfo","candidateStatus","source","referrersName",false,formData,1)))
+				.content(asJsonString( new CandidateRequestDTO("kotaiah","nalleboina","kotaiah@gmail.com",formData,1)))
 				.header("Authorization",
 						"Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI0WndUaGhXVUtGSjhUdE1NdFZrcm1Edk9TdGdRcS1Sa3MwUnEwRE5IRG5jIn0.eyJleHAiOjE3MDMyMzI3MTQsImlhdCI6MTcwMzIzMjQxNCwianRpIjoiNmMwYjBlMmYtMDZmYi00YzU3LWJmMWQtM2MzNmEzZGUxOGQxIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9ydHNyZWFsbSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiIzMzlmMzVhNy0wZDNkLTQzMWUtOWE2My1kOTBkNGMzNDJlNGEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJydHNjbGllbnQiLCJzZXNzaW9uX3N0YXRlIjoiMzExMDI3MDYtYmJmZS00MGJjLWE4YmMtMDEzYTgzYzIzMTVlIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3d3dy5rZXljbG9hay5vcmciXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJkZWZhdWx0LXJvbGVzLXJ0c3JlYWxtIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwic2lkIjoiMzExMDI3MDYtYmJmZS00MGJjLWE4YmMtMDEzYTgzYzIzMTVlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJLb3RhaSBOYWxsZWIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJraXR0dTFAYXZlbi1zeXMuY29tIiwiZ2l2ZW5fbmFtZSI6IktvdGFpIiwiZmFtaWx5X25hbWUiOiJOYWxsZWIiLCJlbWFpbCI6ImtpdHR1MUBhdmVuLXN5cy5jb20ifQ.A314CP_nu6x3qENsK8fyZP8SXXJO9y1nAcUXHU2FRRZ2vtPjD-T6rUoHQ_CZgMXnPg4Rl4MOlSCQ5leTiWix9kfBYkDQGar7GPSf9UnnPai7adiLV8Rb6OUYykHPjN_Wy3A0CVyGbsBB1ow7uhmgPkM7aMBUUYikkYK0aLremKn9vXJCpC7G2UTCW_BOjl7Bb5atic3J328ieN8nu0_W_Zd61ux1zm7skX4TPLNTC-4dAc16O-6IOo6JChQLUublfm-CcVC_i7oIv0Nuw7hOj5m5_e0klNcK-dw9bArBkRCGU9Sr4ieFIkjaLxt22Z3ZDg0C9SeB268OvnKXrjDKiQ")
 				.contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON);
