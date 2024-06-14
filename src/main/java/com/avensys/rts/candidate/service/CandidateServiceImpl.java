@@ -694,7 +694,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean getAll, Long jobId) {
+			String sortDirection, Boolean getAll, Long jobId, Boolean isDownload) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -704,7 +704,14 @@ public class CandidateServiceImpl implements CandidateService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
+
 		Page<CandidateEntity> candidateEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		List<Long> userIds = new ArrayList<>();
@@ -729,7 +736,8 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId,
+			Boolean isDownload) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -739,7 +747,14 @@ public class CandidateServiceImpl implements CandidateService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
+
 		Page<CandidateEntity> candidateEntitiesPage = null;
 		List<Long> userIds = new ArrayList<>();
 		if (!getAll) {
