@@ -21,4 +21,5 @@ public class CandidateListingRequestDTO {
 	private Long jobId;
 	private String customQuery;
 	private Boolean allActive = false;
+	private Boolean isDownload = false;
 }
