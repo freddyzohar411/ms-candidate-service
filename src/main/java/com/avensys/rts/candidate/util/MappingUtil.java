@@ -1,8 +1,10 @@
 package com.avensys.rts.candidate.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
@@ -60,6 +62,7 @@ public class MappingUtil {
 
 	/**
 	 * This method is used to convert Object to JsonNode (Used in HTTPResponse)
+	 * 
 	 * @param objList
 	 * @param key
 	 * @return
@@ -93,4 +96,10 @@ public class MappingUtil {
 		return objectMapper.convertValue(map, JsonNode.class);
 	}
 
+	public static <T> List<T> convertJsonNodeToList(JsonNode jsonNode, Class<T> elementType) {
+		ObjectMapper mapper = new ObjectMapper();
+		TypeFactory typeFactory = mapper.getTypeFactory();
+		JavaType listType = typeFactory.constructCollectionType(List.class, elementType);
+		return mapper.convertValue(jsonNode, listType);
+	}
 }

@@ -694,7 +694,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean getAll, Long jobId, Boolean isDownload) {
+			String sortDirection, Boolean getAll, Long jobId, Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -726,10 +726,10 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					pageRequest, isFilterOutTaggedCandidates, jobId);
+					pageRequest, isFilterOutTaggedCandidates, jobId, filters);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					pageRequest, isFilterOutTaggedCandidates, jobId);
+					pageRequest, isFilterOutTaggedCandidates, jobId, filters);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -737,7 +737,7 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId,
-			Boolean isDownload) {
+			Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -768,10 +768,10 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId, filters);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId, filters);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -1421,6 +1421,11 @@ public class CandidateServiceImpl implements CandidateService {
 		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setColumnName(columnNames);
 		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		// Get Filters
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
 		customFieldsEntity.setSelected(true);
@@ -1440,6 +1445,11 @@ public class CandidateServiceImpl implements CandidateService {
 		customFieldsResponseDTO.setType(candidateCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
+		// Get Filters
+		JsonNode filters = candidateCustomFieldsEntity.getFilters();
+		if (filters != null) {
+			customFieldsResponseDTO.setFilters(MappingUtil.convertJsonNodeToList(filters, FilterDTO.class));
+		}
 		return customFieldsResponseDTO;
 	}
 

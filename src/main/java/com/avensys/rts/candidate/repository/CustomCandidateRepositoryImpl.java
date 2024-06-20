@@ -6,7 +6,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
+import com.avensys.rts.candidate.payloadnewrequest.FilterDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
+import com.avensys.rts.candidate.util.QueryUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -594,7 +596,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId) {
+			Boolean isDraft, Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId,
+			List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
@@ -628,8 +638,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
 				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "%s " + "ORDER BY %s %s NULLS LAST",
-				userCondition, filterSubQuery, orderByClause, sortDirection);
+						+ "%s %s " + "ORDER BY %s %s NULLS LAST",
+				userCondition, filterSubQuery, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
@@ -648,8 +658,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the count query string
 		String countQueryString = String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s "
-						+ "%s",
-				userCondition, filterSubQuery);
+						+ "%s %s ",
+				userCondition, filterSubQuery, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -667,7 +677,15 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 
 	@Override
 	public Page<CandidateEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId) {
+			Boolean isDraft, Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId,
+			List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
@@ -701,8 +719,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
 				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s "
-						+ "%s " + "ORDER BY %s %s NULLS LAST",
-				userCondition, filterSubQuery, orderByClause, sortDirection);
+						+ "%s %s " + "ORDER BY %s %s NULLS LAST",
+				userCondition, filterSubQuery, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
@@ -721,8 +739,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the count query string
 		String countQueryString = String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s"
-						+ "%s ",
-				userCondition, filterSubQuery);
+						+ "%s %s ",
+				userCondition, filterSubQuery, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -741,7 +759,14 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	@Override
 	public Page<CandidateEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
-			Boolean isFilterOutTaggedCandidates, Long jobId) {
+			Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
@@ -795,9 +820,9 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the complete query string
 		String queryString = String.format(
 				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
-						+ "%s " + "ORDER BY %s %s NULLS LAST",
+						+ "%s %s" + "ORDER BY %s %s NULLS LAST",
 
-				userCondition, searchConditions.toString(), filterSubQuery, orderByClause, sortDirection);
+				userCondition, searchConditions.toString(), filterSubQuery, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
@@ -817,8 +842,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the count query string
 		String countQueryString = String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) "
-						+ "%s ",
-				userCondition, searchConditions.toString(), filterSubQuery);
+						+ "%s %s",
+				userCondition, searchConditions.toString(), filterSubQuery, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -838,7 +863,14 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 	@Override
 	public Page<CandidateEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
-			Boolean isFilterOutTaggedCandidates, Long jobId) {
+			Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		String filterSubQuery = "";
 		if (isFilterOutTaggedCandidates) {
@@ -892,8 +924,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the complete query string
 		String queryString = String.format(
 				"SELECT * FROM candidate WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) "
-						+ "%s " + "ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), filterSubQuery, orderByClause, sortDirection);
+						+ "%s %s " + "ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), filterSubQuery, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
@@ -913,8 +945,8 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		// Build the count query string
 		String countQueryString = String.format(
 				"SELECT COUNT(*) FROM candidate WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) "
-						+ "%s ",
-				userCondition, searchConditions.toString(), filterSubQuery);
+						+ "%s %s ",
+				userCondition, searchConditions.toString(), filterSubQuery, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
