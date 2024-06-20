@@ -1389,9 +1389,10 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
-		if (candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
-			throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_NAME_EXIST, null,
-					LocaleContextHolder.getLocale()));
+		if (candidateCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(),
+				"Candidate", false, getUserId())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("candidate.customnameexist", null, LocaleContextHolder.getLocale()));
 		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
 				"Candidate", false);
@@ -1478,9 +1479,10 @@ public class CandidateServiceImpl implements CandidateService {
 		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
-				&& candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+				&& candidateCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(
+						customFieldsRequestDTO.getName(), "Candidate", false, getUserId())) {
 			throw new DuplicateResourceException(
-					messageSource.getMessage("error.customViewAlreadySelected", null, LocaleContextHolder.getLocale()));
+					messageSource.getMessage("candidate.customnameexist", null, LocaleContextHolder.getLocale()));
 		}
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
 		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
