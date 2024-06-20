@@ -1456,6 +1456,41 @@ public class CandidateServiceImpl implements CandidateService {
 		candidateCustomFieldsRepository.save(customFieldsEntity);
 	}
 
+	@Override
+	public CustomFieldsResponseDTO getCustomFieldsById(Long id) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
+				&& candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadySelected", null, LocaleContextHolder.getLocale()));
+		}
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
+		if (customFieldsRequestDTO.getColumnName() != null) {
+			if (!customFieldsRequestDTO.getColumnName().isEmpty()) {
+				String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+				customFieldsEntity.setColumnName(columnNames);
+			}
+		}
+		customFieldsEntity.setUpdatedBy(getUserId());
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
+
+		// Save custom view
+		CustomFieldsEntity updatedCustomFieldEntity = candidateCustomFieldsRepository.save(customFieldsEntity);
+		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
+	}
+
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {
 		return candidateRequestDTO.getEmail();
 	};

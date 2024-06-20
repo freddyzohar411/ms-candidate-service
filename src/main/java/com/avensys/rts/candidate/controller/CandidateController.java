@@ -389,4 +389,21 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@GetMapping("/customView/{customViewId}")
+	public ResponseEntity<Object> getCandidateCustomView(@PathVariable Long customViewId) {
+		LOG.info("Account get custom view: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCustomFieldsById(customViewId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("/customView/edit/{customViewId}")
+	public ResponseEntity<Object> editCandidateCustomView(@PathVariable Long customViewId,
+			@RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+		LOG.info("Account edit custom view: Controller");
+		CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.editCustomFieldsById(customViewId,
+				customFieldsRequestDTO);
+		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 }

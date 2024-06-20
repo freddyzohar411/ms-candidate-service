@@ -69,4 +69,9 @@ public interface CandidateService {
 	void updateCandidateEmbeddingsAll();
 
 	void softDeleteCandidates(CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO);
+
+	CustomFieldsResponseDTO getCustomFieldsById(Long id);
+
+	CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO);
+
 }
