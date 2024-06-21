@@ -15,19 +15,21 @@ public class QueryUtil {
 	public final static String STARTS_WITH = "Starts With";
 	public final static String ENDS_WITH = "Ends With";
 	public final static String GREATER_THAN = "Greater Than";
+	public final static String GREATER_THAN_EQUAL = "Greater Than Equal";
 	public final static String LESS_THAN = "Less Than";
+	public final static String LESS_THAN_EQUAL = "Less Than Equal";
 	public final static String IS_EMPTY = "Is Empty";
 	public final static String IS_NOT_EMPTY = "Is Not Empty";
 	public final static String IS_TRUE = "Is True";
 	public final static String IS_FALSE = "Is False";
 	public final static String IS_NULL = "Is Null";
 	public final static String IS_NOT_NULL = "Is Not Null";
-
+	public final static String ON = "On";
 	public final static String BEFORE = "Before";
+	public final static String BEFORE_EQUAL = "Before Equal";
 	public final static String AFTER = "After";
-
+	public final static String AFTER_EQUAL = "After Equal";
 	public final static String IN = "In";
-
 	public final static String NOT_IN = "Not In";
 
 	public static String buildQueryFromFilters(List<FilterDTO> filters) {
@@ -106,18 +108,81 @@ public class QueryUtil {
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
 				break;
+			case GREATER_THAN_EQUAL:
+				conditionString.append(
+						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)",
+								jsonColumnName, jsonKey, value));
 			case LESS_THAN:
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
 				break;
-			case BEFORE:
+			case LESS_THAN_EQUAL:
 				conditionString.append(
-						String.format("CAST(%s->>'%s' AS date) < CAST('%s' AS date)", jsonColumnName, jsonKey, value));
+						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) <= CAST(%s AS DOUBLE PRECISION)",
+								jsonColumnName, jsonKey, value));
+				break;
+			case ON:
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+					conditionString.append(
+							String.format("TO_DATE(%s->>'%s' || '-01', 'YYYY-MM-DD') = TO_DATE('%s', 'YYYY-MM-DD')",
+									jsonColumnName, jsonKey, value));
+				} else {
+					conditionString.append(String.format("CAST(%s->>'%s' AS date) = CAST('%s' AS date)", jsonColumnName,
+							jsonKey, value));
+				}
+				break;
+			case BEFORE:
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+					conditionString.append(
+							String.format("TO_DATE(%s->>'%s' || '-01', 'YYYY-MM-DD') < TO_DATE('%s', 'YYYY-MM-DD')",
+									jsonColumnName, jsonKey, value));
+				} else {
+					conditionString.append(String.format("CAST(%s->>'%s' AS date) < CAST('%s' AS date)", jsonColumnName,
+							jsonKey, value));
+				}
+				break;
+			case BEFORE_EQUAL:
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+					conditionString.append(
+							String.format("TO_DATE(%s->>'%s' || '-01', 'YYYY-MM-DD') <= TO_DATE('%s', 'YYYY-MM-DD')",
+									jsonColumnName, jsonKey, value));
+				} else {
+					conditionString.append(String.format("CAST(%s->>'%s' AS date) <= CAST('%s' AS date)",
+							jsonColumnName, jsonKey, value));
+				}
 				break;
 			case AFTER:
-				conditionString.append(
-						String.format("CAST(%s->>'%s' AS date) > CAST('%s' AS date)", jsonColumnName, jsonKey, value));
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+					conditionString.append(
+							String.format("TO_DATE(%s->>'%s' || '-01', 'YYYY-MM-DD') > TO_DATE('%s', 'YYYY-MM-DD')",
+									jsonColumnName, jsonKey, value));
+				} else {
+					conditionString.append(String.format("CAST(%s->>'%s' AS date) > CAST('%s' AS date)", jsonColumnName,
+							jsonKey, value));
+				}
+				break;
+			case AFTER_EQUAL:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+					conditionString.append(
+							String.format("TO_DATE(%s->>'%s' || '-01', 'YYYY-MM-DD') >= TO_DATE('%s', 'YYYY-MM-DD')",
+									jsonColumnName, jsonKey, value));
+				} else {
+					conditionString.append(String.format("CAST(%s->>'%s' AS date) >= CAST('%s' AS date)",
+							jsonColumnName, jsonKey, value));
+				}
 				break;
 			case IN:
 				String[] values = value.split(",");
@@ -176,15 +241,56 @@ public class QueryUtil {
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
+			case GREATER_THAN_EQUAL:
+				conditionString.append(String.format(
+						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)", column, value));
 			case LESS_THAN:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
+			case LESS_THAN_EQUAL:
+				conditionString.append(String.format(
+						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) <= CAST(%s AS DOUBLE PRECISION)", column, value));
+				break;
+			case ON:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+				}
+				conditionString.append(String.format("CAST(%s AS date) = CAST('%s' AS date)", column, value));
+				break;
 			case BEFORE:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+				}
 				conditionString.append(String.format("CAST(%s AS date) < CAST('%s' AS date)", column, value));
 				break;
+			case BEFORE_EQUAL:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+				}
+				conditionString.append(String.format("CAST(%s AS date) <= CAST('%s' AS date)", column, value));
+				break;
 			case AFTER:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+				}
 				conditionString.append(String.format("CAST(%s AS date) > CAST('%s' AS date)", column, value));
+				break;
+			case AFTER_EQUAL:
+				// Check if the value contains a day part
+				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// If the value does not contain a day part, append "-01"
+					value = value + "-01";
+				}
+				conditionString.append(String.format("CAST(%s AS date) >= CAST('%s' AS date)", column, value));
 				break;
 			case IN:
 				String[] valuesIn = value.split(",");
