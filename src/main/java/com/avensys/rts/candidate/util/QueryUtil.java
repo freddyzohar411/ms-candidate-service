@@ -71,16 +71,16 @@ public class QueryUtil {
 			String jsonKey = parts[1];
 			switch (condition) {
 			case EQUAL:
-				conditionString.append(String.format("(%s->>'%s') = '%s'", jsonColumnName, jsonKey, value));
-				break;
-			case NOT_EQUAL:
-				conditionString.append(String.format("(%s->>'%s') != '%s'", jsonColumnName, jsonKey, value));
-				break;
-			case CONTAINS:
 				conditionString.append(String.format("(%s->>'%s') ILIKE '%s'", jsonColumnName, jsonKey, value));
 				break;
-			case DOES_NOT_CONTAIN:
+			case NOT_EQUAL:
 				conditionString.append(String.format("(%s->>'%s') NOT ILIKE '%s'", jsonColumnName, jsonKey, value));
+				break;
+			case CONTAINS:
+				conditionString.append(String.format("(%s->>'%s') ILIKE '%%%s%%'", jsonColumnName, jsonKey, value));
+				break;
+			case DOES_NOT_CONTAIN:
+				conditionString.append(String.format("(%s->>'%s') NOT ILIKE '%%%s%%'", jsonColumnName, jsonKey, value));
 				break;
 			case STARTS_WITH:
 				conditionString.append(String.format("(%s->>'%s') ILIKE '%s%%'", jsonColumnName, jsonKey, value));
@@ -143,16 +143,16 @@ public class QueryUtil {
 		} else {
 			switch (condition) {
 			case EQUAL:
-				conditionString.append(String.format("%s = '%s'", column, value));
-				break;
-			case NOT_EQUAL:
-				conditionString.append(String.format("%s != '%s'", column, value));
-				break;
-			case CONTAINS:
 				conditionString.append(String.format("%s ILIKE '%s'", column, value));
 				break;
-			case DOES_NOT_CONTAIN:
+			case NOT_EQUAL:
 				conditionString.append(String.format("%s NOT ILIKE '%s'", column, value));
+				break;
+			case CONTAINS:
+				conditionString.append(String.format("%s ILIKE '%%%s%%'", column, value));
+				break;
+			case DOES_NOT_CONTAIN:
+				conditionString.append(String.format("%s NOT ILIKE '%%%s%%'", column, value));
 				break;
 			case STARTS_WITH:
 				conditionString.append(String.format("%s ILIKE '%s%%'", column, value));
