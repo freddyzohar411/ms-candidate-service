@@ -105,6 +105,7 @@ public class QueryUtil {
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
+				break;
 			case LESS_THAN:
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)",
@@ -237,6 +238,7 @@ public class QueryUtil {
 			case GREATER_THAN_OR_EQUAL:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)", column, value));
+				break;
 			case LESS_THAN:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)", column, value));
@@ -302,6 +304,7 @@ public class QueryUtil {
 				break;
 			case IS_FALSE:
 				conditionString.append(String.format("%s = false", column));
+				break;
 			}
 		}
 		return conditionString.toString();
