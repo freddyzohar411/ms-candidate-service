@@ -386,7 +386,7 @@ public class CandidateController {
 
 	@GetMapping("/customView/{customViewId}")
 	public ResponseEntity<Object> getCandidateCustomView(@PathVariable Long customViewId) {
-		LOG.info("Account get custom view: Controller");
+		LOG.info("Candidate get custom view: Controller");
 		return ResponseUtil.generateSuccessResponse(candidateNewService.getCustomFieldsById(customViewId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -394,7 +394,7 @@ public class CandidateController {
 	@PostMapping("/customView/edit/{customViewId}")
 	public ResponseEntity<Object> editCandidateCustomView(@PathVariable Long customViewId,
 			@RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
-		LOG.info("Account edit custom view: Controller");
+		LOG.info("Candidate edit custom view: Controller");
 		CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.editCustomFieldsById(customViewId,
 				customFieldsRequestDTO);
 		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,

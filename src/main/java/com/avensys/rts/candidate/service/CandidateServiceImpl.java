@@ -79,7 +79,6 @@ public class CandidateServiceImpl implements CandidateService {
 	@Transactional
 	public CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate create : Service");
-		System.out.println("createCandidate" + candidateRequestDTO);
 		String email = getEmailFromRequest(candidateRequestDTO);
 
 		if (email != null && !email.isEmpty()) {
@@ -89,7 +88,6 @@ public class CandidateServiceImpl implements CandidateService {
 			}
 		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
-		System.out.println("Candidate ID: " + candidateEntity.getId());
 
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = candidateNewRequestDTOToFormSubmissionRequestDTO(
 				candidateEntity, candidateRequestDTO);
@@ -100,7 +98,6 @@ public class CandidateServiceImpl implements CandidateService {
 
 		candidateEntity.setCandidateSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
 		candidateEntity.setFormSubmissionId(formSubmissionData.getId());
-		System.out.println("Form Submission Id: " + candidateEntity.getFormSubmissionId());
 		return candidateEntityToCandidateResopnseDTO(candidateEntity);
 	}
 
@@ -141,7 +138,6 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	private CandidateEntity candidateNewRequestDTOToCandidateNewEntity(CandidateRequestDTO candidateRequestDTO) {
-		System.out.println("candidateNewRequestDTOToCandidateNewEntity: " + candidateRequestDTO);
 		CandidateEntity candidateEntity = new CandidateEntity();
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
 		candidateEntity.setLastName(candidateRequestDTO.getLastName());
@@ -185,8 +181,6 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate update : Service");
-		System.out.println("Update candidate Id: " + id);
-		System.out.println(candidateRequestDTO);
 
 		// Get candidate data from candidate microservice
 		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
@@ -1406,9 +1400,6 @@ public class CandidateServiceImpl implements CandidateService {
 			}
 
 		}
-
-		System.out.println(" Save candidate customFields : Service");
-		System.out.println(customFieldsRequestDTO);
 		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
 				customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(candidateCustomFieldsEntity);

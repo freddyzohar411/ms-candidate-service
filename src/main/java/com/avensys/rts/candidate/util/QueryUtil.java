@@ -45,11 +45,6 @@ public class QueryUtil {
 			String condition = filter.getCondition();
 			String value = filter.getValue();
 			String operator = filter.getOperator();
-			System.out.println("column: " + column);
-			System.out.println("condition: " + condition);
-			System.out.println("value: " + value);
-			System.out.println("operator: " + operator);
-
 			String conditionString = buildConditionString(column, condition, value, parameterPosition);
 
 			if (i == 0) {
@@ -65,8 +60,6 @@ public class QueryUtil {
 
 	private static String buildConditionString(String column, String condition, String value, int parameterPosition) {
 		StringBuilder conditionString = new StringBuilder();
-//		String sqlOperator = getSqlCondition(condition);
-
 		if (column.contains(".")) {
 			String[] parts = column.split("\\.");
 			String jsonColumnName = parts[0];

@@ -152,9 +152,6 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 				"SELECT * FROM candidate_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
-		// Log the generated SQL (for debugging)
-		System.out.println(queryString);
-
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, CandidateEntity.class);
 		query.setParameter("userId", userId);
