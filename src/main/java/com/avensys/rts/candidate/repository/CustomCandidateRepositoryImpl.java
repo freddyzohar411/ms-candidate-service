@@ -601,6 +601,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 			if (!filters.isEmpty()) {
 				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
 			}
+			System.out.println("filterQuery: " + filterQuery);
 		}
 
 		String filterSubQuery = "";
@@ -681,6 +682,7 @@ public class CustomCandidateRepositoryImpl implements CustomCandidateRepository 
 		if (filters != null) {
 			if (!filters.isEmpty()) {
 				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+				System.out.println("filterQuery: " + filterQuery);
 			}
 		}
 
