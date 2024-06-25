@@ -15,9 +15,9 @@ public class QueryUtil {
 	public final static String STARTS_WITH = "Starts With";
 	public final static String ENDS_WITH = "Ends With";
 	public final static String GREATER_THAN = "Greater Than";
-	public final static String GREATER_THAN_EQUAL = "Greater Than Equal";
+	public final static String GREATER_THAN_OR_EQUAL = "Greater Than Or Equal";
 	public final static String LESS_THAN = "Less Than";
-	public final static String LESS_THAN_EQUAL = "Less Than Equal";
+	public final static String LESS_THAN_OR_EQUAL = "Less Than Or Equal";
 	public final static String IS_EMPTY = "Is Empty";
 	public final static String IS_NOT_EMPTY = "Is Not Empty";
 	public final static String IS_TRUE = "Is True";
@@ -26,9 +26,9 @@ public class QueryUtil {
 	public final static String IS_NOT_NULL = "Is Not Null";
 	public final static String ON = "On";
 	public final static String BEFORE = "Before";
-	public final static String BEFORE_EQUAL = "Before Equal";
+	public final static String BEFORE_OR_EQUAL = "Before Or Equal";
 	public final static String AFTER = "After";
-	public final static String AFTER_EQUAL = "After Equal";
+	public final static String AFTER_OR_EQUAL = "After Or Equal";
 	public final static String IN = "In";
 	public final static String NOT_IN = "Not In";
 
@@ -108,7 +108,7 @@ public class QueryUtil {
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
 				break;
-			case GREATER_THAN_EQUAL:
+			case GREATER_THAN_OR_EQUAL:
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
@@ -117,7 +117,7 @@ public class QueryUtil {
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
 				break;
-			case LESS_THAN_EQUAL:
+			case LESS_THAN_OR_EQUAL:
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) <= CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
@@ -146,7 +146,7 @@ public class QueryUtil {
 							jsonKey, value));
 				}
 				break;
-			case BEFORE_EQUAL:
+			case BEFORE_OR_EQUAL:
 				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
 					// If the value does not contain a day part, append "-01"
 					value = value + "-01";
@@ -171,7 +171,7 @@ public class QueryUtil {
 							jsonKey, value));
 				}
 				break;
-			case AFTER_EQUAL:
+			case AFTER_OR_EQUAL:
 				// Check if the value contains a day part
 				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
 					// If the value does not contain a day part, append "-01"
@@ -241,14 +241,14 @@ public class QueryUtil {
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
-			case GREATER_THAN_EQUAL:
+			case GREATER_THAN_OR_EQUAL:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) >= CAST(%s AS DOUBLE PRECISION)", column, value));
 			case LESS_THAN:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
-			case LESS_THAN_EQUAL:
+			case LESS_THAN_OR_EQUAL:
 				conditionString.append(String.format(
 						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) <= CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
@@ -268,7 +268,7 @@ public class QueryUtil {
 				}
 				conditionString.append(String.format("CAST(%s AS date) < CAST('%s' AS date)", column, value));
 				break;
-			case BEFORE_EQUAL:
+			case BEFORE_OR_EQUAL:
 				// Check if the value contains a day part
 				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
 					// If the value does not contain a day part, append "-01"
@@ -284,7 +284,7 @@ public class QueryUtil {
 				}
 				conditionString.append(String.format("CAST(%s AS date) > CAST('%s' AS date)", column, value));
 				break;
-			case AFTER_EQUAL:
+			case AFTER_OR_EQUAL:
 				// Check if the value contains a day part
 				if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
 					// If the value does not contain a day part, append "-01"
