@@ -18,4 +18,5 @@ public class CustomFieldsRequestDTO {
 	private List<String> columnName;
 	private Integer createdBy;
 	private Integer updatedBy;
+	List<FilterDTO> filters;
 }

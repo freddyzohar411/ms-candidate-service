@@ -27,4 +27,9 @@ public interface CandidateCustomFieldsRepository extends JpaRepository<CustomFie
 	    
 	    @Query(value = "SELECT c FROM customView c WHERE c.id = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
 	    Optional<CustomFieldsEntity> findByIdAndDeleted(Long id, boolean isDeleted, boolean isActive);
+
+	// Find Boolean exist by name if type and is_deleted and created By, return true or false
+	@Query(value = "SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM customView c WHERE c.name = ?1 AND c.type = ?2 AND c.isDeleted = ?3 AND c.createdBy = ?4")
+	Boolean findByNameAndTypeAndIsDeletedAndCreatedBy(String name, String type, boolean isDeleted,
+			Integer createdBy);
 }

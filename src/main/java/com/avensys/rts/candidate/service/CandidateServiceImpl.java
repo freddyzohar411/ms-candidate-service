@@ -79,7 +79,6 @@ public class CandidateServiceImpl implements CandidateService {
 	@Transactional
 	public CandidateResponseDTO createCandidate(CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate create : Service");
-		System.out.println("createCandidate" + candidateRequestDTO);
 		String email = getEmailFromRequest(candidateRequestDTO);
 
 		if (email != null && !email.isEmpty()) {
@@ -89,7 +88,6 @@ public class CandidateServiceImpl implements CandidateService {
 			}
 		}
 		CandidateEntity candidateEntity = candidateNewRequestDTOToCandidateNewEntity(candidateRequestDTO);
-		System.out.println("Candidate ID: " + candidateEntity.getId());
 
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = candidateNewRequestDTOToFormSubmissionRequestDTO(
 				candidateEntity, candidateRequestDTO);
@@ -100,7 +98,6 @@ public class CandidateServiceImpl implements CandidateService {
 
 		candidateEntity.setCandidateSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
 		candidateEntity.setFormSubmissionId(formSubmissionData.getId());
-		System.out.println("Form Submission Id: " + candidateEntity.getFormSubmissionId());
 		return candidateEntityToCandidateResopnseDTO(candidateEntity);
 	}
 
@@ -141,7 +138,6 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	private CandidateEntity candidateNewRequestDTOToCandidateNewEntity(CandidateRequestDTO candidateRequestDTO) {
-		System.out.println("candidateNewRequestDTOToCandidateNewEntity: " + candidateRequestDTO);
 		CandidateEntity candidateEntity = new CandidateEntity();
 		candidateEntity.setFirstName(candidateRequestDTO.getFirstName());
 		candidateEntity.setLastName(candidateRequestDTO.getLastName());
@@ -185,8 +181,6 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CandidateResponseDTO updateCandidate(Integer id, CandidateRequestDTO candidateRequestDTO) {
 		LOG.info("Candidate update : Service");
-		System.out.println("Update candidate Id: " + id);
-		System.out.println(candidateRequestDTO);
 
 		// Get candidate data from candidate microservice
 		CandidateEntity candidateEntity = candidateRepository.findByIdAndDeleted(id, false, true)
@@ -694,7 +688,7 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean getAll, Long jobId, Boolean isDownload) {
+			String sortDirection, Boolean getAll, Long jobId, Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -726,10 +720,10 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					pageRequest, isFilterOutTaggedCandidates, jobId);
+					pageRequest, isFilterOutTaggedCandidates, jobId, filters);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					pageRequest, isFilterOutTaggedCandidates, jobId);
+					pageRequest, isFilterOutTaggedCandidates, jobId, filters);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -737,7 +731,7 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId,
-			Boolean isDownload) {
+			Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -768,10 +762,10 @@ public class CandidateServiceImpl implements CandidateService {
 
 		try {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId, filters);
 		} catch (Exception e) {
 			candidateEntitiesPage = candidateRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
-					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId);
+					false, true, pageRequest, searchFields, searchTerm, isFilterOutTaggedCandidates, jobId, filters);
 		}
 		return pageCandidateListingToCandidateListingResponseDTO(candidateEntitiesPage);
 	}
@@ -1389,9 +1383,10 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
-		if (candidateCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
-			throw new ServiceException(messageSource.getMessage(MessageConstants.CANDIDATE_CUSTOM_VIEW_NAME_EXIST, null,
-					LocaleContextHolder.getLocale()));
+		if (candidateCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(),
+				"Candidate", false, getUserId())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("candidate.customnameexist", null, LocaleContextHolder.getLocale()));
 		}
 		List<CustomFieldsEntity> selectedCustomView = candidateCustomFieldsRepository.findAllByUser(getUserId(),
 				"Candidate", false);
@@ -1405,9 +1400,6 @@ public class CandidateServiceImpl implements CandidateService {
 			}
 
 		}
-
-		System.out.println(" Save candidate customFields : Service");
-		System.out.println(customFieldsRequestDTO);
 		CustomFieldsEntity candidateCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
 				customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(candidateCustomFieldsEntity);
@@ -1421,6 +1413,11 @@ public class CandidateServiceImpl implements CandidateService {
 		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setColumnName(columnNames);
 		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		// Get Filters
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
 		customFieldsEntity.setSelected(true);
@@ -1440,6 +1437,11 @@ public class CandidateServiceImpl implements CandidateService {
 		customFieldsResponseDTO.setType(candidateCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(candidateCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(candidateCustomFieldsEntity.getId());
+		// Get Filters
+		JsonNode filters = candidateCustomFieldsEntity.getFilters();
+		if (filters != null) {
+			customFieldsResponseDTO.setFilters(MappingUtil.convertJsonNodeToList(filters, FilterDTO.class));
+		}
 		return customFieldsResponseDTO;
 	}
 
@@ -1454,6 +1456,42 @@ public class CandidateServiceImpl implements CandidateService {
 
 		// Save custom view
 		candidateCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO getCustomFieldsById(Long id) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = candidateCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
+				&& candidateCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(
+						customFieldsRequestDTO.getName(), "Candidate", false, getUserId())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("candidate.customnameexist", null, LocaleContextHolder.getLocale()));
+		}
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
+		if (customFieldsRequestDTO.getColumnName() != null) {
+			if (!customFieldsRequestDTO.getColumnName().isEmpty()) {
+				String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+				customFieldsEntity.setColumnName(columnNames);
+			}
+		}
+		customFieldsEntity.setUpdatedBy(getUserId());
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
+
+		// Save custom view
+		CustomFieldsEntity updatedCustomFieldEntity = candidateCustomFieldsRepository.save(customFieldsEntity);
+		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {

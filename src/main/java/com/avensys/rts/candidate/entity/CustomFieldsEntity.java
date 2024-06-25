@@ -3,7 +3,9 @@ package com.avensys.rts.candidate.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
@@ -16,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.type.SqlTypes;
 
 /*
  * Author: Kotaiah Nalleboina
@@ -66,4 +69,8 @@ public class CustomFieldsEntity {
 	
 	@Column(name = "is_active")
 	private Boolean isActive = true;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "filters", columnDefinition = "jsonb")
+	private JsonNode filters;
 }

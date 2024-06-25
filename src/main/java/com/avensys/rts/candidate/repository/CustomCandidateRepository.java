@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.avensys.rts.candidate.entity.CandidateEntityWithSimilarity;
+import com.avensys.rts.candidate.payloadnewrequest.FilterDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateJobSimilaritySearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,18 +44,18 @@ public interface CustomCandidateRepository {
 
 	// Check only user id
 	Page<CandidateEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId);
+			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters);
 
 	Page<CandidateEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId);
+			Boolean isActive, Pageable pageable, Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters);
 
 	Page<CandidateEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
-			Boolean isFilterOutTaggedCandidates, Long jobId);
+			Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters);
 
 	Page<CandidateEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm,
-			Boolean isFilterOutTaggedCandidates, Long jobId);
+			Boolean isFilterOutTaggedCandidates, Long jobId, List<FilterDTO> filters);
 
 	void insertVector(Long candidateId, String columnName, List<Float> vector);
 

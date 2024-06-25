@@ -35,11 +35,11 @@ public interface CandidateService {
 	void softDeleteCandidate(Integer id);
 
 	CandidateListingResponseDTO getCandidateListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Boolean getAll, Long jobId, Boolean isDownload);
+			Boolean getAll, Long jobId, Boolean isDownload, List<FilterDTO> filters);
 
 	CandidateListingResponseDTO getCandidateListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Boolean getAll, Long jobId,
-			Boolean isDownload);
+			Boolean isDownload, List<FilterDTO> filters);
 
 	// List<CandidateNewEntity>getAllCandidatesWithSearch(String query);
 
@@ -69,4 +69,9 @@ public interface CandidateService {
 	void updateCandidateEmbeddingsAll();
 
 	void softDeleteCandidates(CandidateListingDeleteRequestDTO candidateListingDeleteRequestDTO);
+
+	CustomFieldsResponseDTO getCustomFieldsById(Long id);
+
+	CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO);
+
 }

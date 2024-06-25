@@ -22,4 +22,5 @@ public class CandidateListingRequestDTO {
 	private String customQuery;
 	private Boolean allActive = false;
 	private Boolean isDownload = false;
+	private List<FilterDTO> filters;
 }

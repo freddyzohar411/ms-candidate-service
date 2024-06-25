@@ -1,5 +1,6 @@
 package com.avensys.rts.candidate.exception;
 
+import com.avensys.rts.candidate.util.ResponseUtil;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -51,7 +52,18 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 		return buildResponseEntity(apiError);
 	}
 
-//	@ExceptionHandler(BadCredentialsException.class)
+	/**
+	 * This method is used to handle the exceptions thrown by the Feign client.
+	 *
+	 * @param ex
+	 * @return
+	 */
+	@ExceptionHandler(DuplicateResourceException.class)
+	public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
+		return ResponseUtil.generateErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+	}
+
+	//	@ExceptionHandler(BadCredentialsException.class)
 //	protected ResponseEntity<Object> userNotFound(BadCredentialsException ex) {
 //		ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED);
 //		apiError.setMessage(ex.getMessage());	

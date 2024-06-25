@@ -3,6 +3,7 @@ package com.avensys.rts.candidate.controller;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import com.avensys.rts.candidate.payloadnewrequest.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +26,6 @@ import com.avensys.rts.candidate.annotation.RequiresAllPermissions;
 import com.avensys.rts.candidate.constant.MessageConstants;
 import com.avensys.rts.candidate.entity.CustomFieldsEntity;
 import com.avensys.rts.candidate.enums.Permission;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateJobSimilaritySearchRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingDeleteRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateListingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMappingRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateMatchingDetailsResponseDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CandidateRequestDTO;
-import com.avensys.rts.candidate.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateMappingResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CandidateResponseDTO;
 import com.avensys.rts.candidate.payloadnewresponse.CustomFieldsResponseDTO;
@@ -229,17 +223,18 @@ public class CandidateController {
 		Boolean isAdmin = candidateListingRequestDTO.getAllActive() ? candidateListingRequestDTO.getAllActive()
 				: userUtil.checkIsAdmin();
 		Boolean isDownload = candidateListingRequestDTO.getIsDownload();
+		List<FilterDTO> filters = candidateListingRequestDTO.getFilters();
 
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
 					candidateNewService.getCandidateListingPage(page, pageSize, sortBy, sortDirection, isAdmin, jobId,
-							isDownload),
+							isDownload, filters),
 					HttpStatus.OK, messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null,
 							LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				candidateNewService.getCandidateListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, isAdmin, jobId, isDownload),
+						searchFields, isAdmin, jobId, isDownload, filters),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.CANDIDATE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -386,6 +381,23 @@ public class CandidateController {
 		LOG.info("Candidate listing delete: Controller");
 		candidateNewService.softDeleteCandidates(candidateListingDeleteRequestDTO);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/customView/{customViewId}")
+	public ResponseEntity<Object> getCandidateCustomView(@PathVariable Long customViewId) {
+		LOG.info("Candidate get custom view: Controller");
+		return ResponseUtil.generateSuccessResponse(candidateNewService.getCustomFieldsById(customViewId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("/customView/edit/{customViewId}")
+	public ResponseEntity<Object> editCandidateCustomView(@PathVariable Long customViewId,
+			@RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+		LOG.info("Candidate edit custom view: Controller");
+		CustomFieldsResponseDTO customFieldsResponseDTO = candidateNewService.editCustomFieldsById(customViewId,
+				customFieldsRequestDTO);
+		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
