@@ -1494,6 +1494,11 @@ public class CandidateServiceImpl implements CandidateService {
 		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
+	@Override
+	public void unSelectAllCustomViews() {
+		candidateCustomFieldsRepository.updateIsSelected(false, "Candidate", false, getUserId());
+	}
+
 	private String getEmailFromRequest(CandidateRequestDTO candidateRequestDTO) {
 		return candidateRequestDTO.getEmail();
 	};
