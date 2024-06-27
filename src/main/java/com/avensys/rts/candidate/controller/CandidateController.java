@@ -401,4 +401,12 @@ public class CandidateController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@PutMapping("/customView/unselect-all")
+	public ResponseEntity<Object> unselectAllCustomView() {
+		LOG.info("Candidate unselect all custom view: Controller");
+		candidateNewService.unSelectAllCustomViews();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 }

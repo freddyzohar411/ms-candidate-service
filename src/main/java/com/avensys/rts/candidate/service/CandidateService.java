@@ -74,4 +74,5 @@ public interface CandidateService {
 
 	CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO);
 
+	void unSelectAllCustomViews();
 }
